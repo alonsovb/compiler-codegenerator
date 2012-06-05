@@ -1,0 +1,6 @@
+package AST;
+
+public abstract class AFormalParameterBlock
+{
+	public abstract Object visit(Visitor v,Object arg);
+}
