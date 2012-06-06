@@ -160,7 +160,7 @@ public class ContextAnalizer implements Visitor {
 
         // Buscar clases 
         if (result != declaredType) {
-            reporter.ReportError(c.id1.value.toString() + ": Se esperaba retornar " + declaredType.getClass().getName() + ". Se retorna " + result.getClass().getName());
+            reporter.ReportError(c.id1.value.toString() + ": Se esperaba retornar " + declaredType + ". Se retorna " + result);
         }
         it.closeScope();
         return null;
@@ -294,12 +294,12 @@ public class ContextAnalizer implements Visitor {
     public Object visitAnAssignmentStatement(AnAssignmentStatement c, Object arg) {
         if (it.exists(c.id1.value.toString())) {
             // Clase del identificador
-            Object idClass = TypeUtilities.getClass(it.retrieve(c.id1.value.toString()));
+            String idClass = TypeUtilities.getClass(it.retrieve(c.id1.value.toString()));
             // Clase del valor asignado
-            Object expressionClass = c.e0.visit(this, arg);
+            String expressionClass = c.e0.visit(this, arg).toString();
 //            Object expClass = TypeUtilities.getClass(expressionClass);
             // Comprobar si las clases son distintas
-            if (idClass != expressionClass) {
+            if (!idClass.equals(expressionClass)) {
                 reporter.ReportError("Error al asignar la variable " + c.id1.value.toString() + ". Se esperaba "
                         + idClass.toString() + ". Se recibió " + expressionClass.toString());
             }
@@ -314,18 +314,18 @@ public class ContextAnalizer implements Visitor {
     public Object visitAnArrayAssignmentStatement(AnArrayAssignmentStatement c, Object arg) {
         if (it.exists(c.id1.value.toString())) {
             // Comprobar que el índice es entero
-            if (c.e0.visit(this, null) != "int") {
+            if (c.e0.visit(this, arg) != "int") {
                 reporter.ReportError("Se esperaba un entero como índice");
             }
             // Clase del identificador
-            Object idClass = it.retrieve(c.id1.value.toString());
+            String idClass = TypeUtilities.getClass(it.retrieve(c.id1.value.toString()));
             // Clase del valor asignado
-            Object expClass = c.e1.visit(this, arg);
+            String expClass = c.e1.visit(this, arg).toString();
             // Comprobar si las clases son distintas
-            if (idClass != AnArrayType.class) {
+            if (!idClass.contains("[]")) {
                 reporter.ReportError("Se esperaba un tipo arreglo");
             }
-            if (idClass != expClass) {
+            if (!idClass.substring(0, idClass.length() - 2).equals(expClass)) {
                 reporter.ReportError("Error al asignar la variable " + c.id1.value.toString());
             }
         } else {
@@ -336,7 +336,7 @@ public class ContextAnalizer implements Visitor {
 
     @Override
     public Object visitAnIfStatement(AnIfStatement c, Object arg) {
-        if (c.e0.visit(this, null) != "bool") {
+        if (c.e0.visit(this, arg) != "bool") {
             reporter.ReportError("Se esperaba un expresión booleana");
         }
         c.s1.visit(this, arg);
@@ -348,7 +348,7 @@ public class ContextAnalizer implements Visitor {
 
     @Override
     public Object visitAWhileStatement(AWhileStatement c, Object arg) {
-        if (c.e0.visit(this, null) != "bool") {
+        if (c.e0.visit(this, arg) != "bool") {
             reporter.ReportError("Se esperaba un expresión booleana");
         }
         if (c.s1 != null) {
@@ -454,12 +454,12 @@ public class ContextAnalizer implements Visitor {
         Object exp1Class = c.pe0.visit(this, arg);
         // Clase de la segunda expresión
         Object exp2Class = c.pe1.visit(this, arg);
-        
+
         if (exp1Class == null || exp2Class == null) {
             reporter.ReportError("No se puede aplicar la operación de suma, uno de los valores es inválido");
             return "int";
         }
-        
+
         // Comprobar que las clases sean enteras o strings
         if (exp1Class == "int" && exp2Class == "int") {
             return "int";
@@ -513,10 +513,10 @@ public class ContextAnalizer implements Visitor {
     @Override
     public Object visitAnArrayLookup(AnArrayLookup c, Object arg) {
         // Arreglar esto
-        if ((c.pe1.visit(this, null) == "int")
-                && (c.pe0.visit(this, null) == ATypeArray.class)) {
+        if ((c.pe1.visit(this, arg) == "int")
+                && (c.pe0.visit(this, arg) == ATypeArray.class)) {
             return "bool";
-        } else if (c.pe1.visit(this, null) == "int") {
+        } else if (c.pe1.visit(this, arg) == "int") {
             reporter.ReportError("Se espera un valor de tipo entero como índice de arreglo");
         } else {
             reporter.ReportError("Se espera un valor de tipo arreglo para el Lookup");
@@ -526,7 +526,7 @@ public class ContextAnalizer implements Visitor {
 
     @Override
     public Object visitAnArrayLength(AnArrayLength c, Object arg) {
-        if (c.pe0.visit(this, null) == AnArrayType.class) {
+        if (c.pe0.visit(this, arg) == AnArrayType.class) {
             return "int";
         } else {
             reporter.ReportError("Se espera un tipo de arreglo para obtener su tamaño");
@@ -620,9 +620,9 @@ public class ContextAnalizer implements Visitor {
 
     @Override
     public Object visitAPrimaryIdentifier(APrimaryIdentifier c, Object arg) {
-        if (it.exists(c.id1.value.toString()))
+        if (it.exists(c.id1.value.toString())) {
             return TypeUtilities.getClass(it.retrieve(c.id1.value.toString()));
-        else {
+        } else {
             reporter.ReportError("No se encuentra el identificador " + c.id1.value.toString());
             return null;
         }
@@ -673,7 +673,7 @@ public class ContextAnalizer implements Visitor {
 
     @Override
     public Object visitAnArrayAllocationExpression(AnArrayAllocationExpression c, Object arg) {
-        if (c.e1.visit(this, null) != "int") {
+        if (c.e1.visit(this, arg) != "int") {
             reporter.ReportError("Se esperaba un entero en el tamaño de alocación");
         }
         String tipoSimple = (String) c.st0.visit(this, arg);
@@ -687,7 +687,7 @@ public class ContextAnalizer implements Visitor {
 
     @Override
     public Object visitANotExpression(ANotExpression c, Object arg) {
-        if (c.e0.visit(this, null) != "bool") {
+        if (c.e0.visit(this, arg) != "bool") {
             reporter.ReportError("Se esperaba un valor booleano para la expresión de negación");
         }
         return "bool";
@@ -741,7 +741,7 @@ public class ContextAnalizer implements Visitor {
 
     @Override
     public Object visitASwitchStatement(ASwitchStatement c, Object arg) {
-        Object expType = c.e0.visit(this, null);
+        Object expType = c.e0.visit(this, arg);
         HashMap args = (HashMap) arg;
         args.put("Switch", expType);
         if (c.sb1 != null) {
