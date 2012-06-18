@@ -1,0 +1,20 @@
+class Factorial {
+    public static void main(String[] a) {
+        System.out.println(3);
+    }
+}
+class Math {
+    public int Random() {
+	return 2;
+    }
+}
+class Fac extends Math {
+    public int ComputeFac2(int num, int num2, int num3) {
+        int num_aux;
+        if (num < 1)
+            num_aux = 1;
+        else
+            num_aux = num * (this.ComputeFac2(num-1,3,4));
+        return num_aux;
+    }
+}

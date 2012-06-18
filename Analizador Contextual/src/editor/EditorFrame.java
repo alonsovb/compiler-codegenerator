@@ -163,6 +163,7 @@ public class EditorFrame extends javax.swing.JFrame implements ErrorReporter {
         EditorPane.setColumns(20);
         EditorPane.setFont(new java.awt.Font("Ubuntu Mono", 0, 14)); // NOI18N
         EditorPane.setRows(5);
+        EditorPane.setTabSize(4);
         jScrollPane4.setViewportView(EditorPane);
 
         SplitPanel.setLeftComponent(jScrollPane4);

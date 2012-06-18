@@ -1,0 +1,667 @@
+package proyecto;
+
+import java_cup.runtime.*;
+import AST.*;
+
+parser code {:
+	
+	Scanner scanner;
+  
+	public AST raiz;
+	
+	public editor.EditorFrame frame;
+	
+	public parser(java.io.Reader input){
+	scanner = new Scanner(input);
+	}
+	
+	    public String errores(int sys) {
+        if (sys == 2) {
+            return ("INT");
+        } else if (sys == 3) {
+            return ("STRING");
+        } else if (sys == 4) {
+            return ("ASIGN");
+        } else if (sys == 5) {
+            return ("MULT");
+        } else if (sys == 6) {
+            return ("SUMA");
+        } else if (sys == 7) {
+            return ("PARENi");
+        } else if (sys == 8) {
+            return ("PARENd");
+        } else if (sys == 9) {
+            return ("PUNTOyCOMA");
+        } else if (sys == 10) {
+            return ("COMA");
+        } else if (sys == 11) {
+            return ("NUM");
+        } else if (sys == 12) {
+            return ("STRING");
+        } else if (sys == 13) {
+            return ("myIDENTIFIER");
+        } else {
+            return ("error");
+        }
+    }
+
+	public void syntax_error(Symbol cur_token) {
+        report_error("Unexpected symbol \"" + cur_token.value.toString() +  "\"", cur_token);
+    }
+
+    public void syntax_error(Symbol cur_token) {
+        report_error("Unexpected symbol \"" + cur_token.value.toString() +  "\"", cur_token);
+    }
+
+    public void report_error(String message, Object info) {
+        StringBuilder m = new StringBuilder();
+
+        if (info instanceof java_cup.runtime.Symbol) {
+            // m.append("(").append(errores(((java_cup.runtime.Symbol) info).sym)).append(")");
+            m.append("Line ").append(((java_cup.runtime.Symbol) info).left).append(", Column ").append(((java_cup.runtime.Symbol) info).right);
+
+            if (((java_cup.runtime.Symbol) info).value != null) {
+                // m.append(". Lexema: ").append(((java_cup.runtime.Symbol) info).value.toString());
+            }
+
+        }
+        m.append(". ").append(message);
+        if (frame != null)
+            frame.ReportError(m.toString());
+    }
+
+    public void report_fatal_error(String message, Object info) {
+        report_error(message, info);
+        throw new RuntimeException("Error Fatal de Sintaxis");
+    }
+
+:}
+
+
+non terminal AGoal aGoal; 
+non terminal ATypeDecl aTypeDecl;
+non terminal TypeDeclaration typeDeclaration;
+non terminal AMainClass mainClass;
+non terminal AClassDeclaration aClassDeclaration; 
+non terminal AVarDecl aVarDecl; 
+non terminal AMethodDecl aMethodDecl; 
+non terminal AClassExtendsDeclaration classExtendsDeclaration; 
+non terminal AVarDeclaration aVarDeclaration; 
+non terminal AMethodDeclaration aMethodDeclaration; 
+non terminal AFormalParameterBlock aFormalParameterBlock; 
+non terminal AStatementList aStatementList; 
+non terminal FormalParameterList formalParameterList; 
+non terminal AFormalParameter aFormalParameter; 
+non terminal AFormalParameterRest aFormalParameterRest; 
+non terminal Type type; 
+non terminal SimpleType simpleType; 
+non terminal AnArrayType arrayType; 
+non terminal Statement statement;
+non terminal ABlock aBlock;
+non terminal AnAssignmentStatement anAssignmentStatement;
+non terminal AnArrayAssignmentStatement anArrayAssignmentStatement;
+non terminal AnIfStatement anIfStatement;
+non terminal AWhileStatement aWhileStatement;
+non terminal APrintStatement aPrintStatement;
+non terminal Expression expression;
+non terminal AnAndExpression anAndExpression;
+non terminal AMenorQueExpression aMenorQueExpression;
+non terminal AMayorQueExpression aMayorQueExpression;
+non terminal APlusExpression aPlusExpression;
+non terminal AMinusExpression aMinusExpression;
+non terminal ADivExpression aDivExpression;
+non terminal ATimesExpression aTimesExpression;
+non terminal AnArrayLookup anArrayLookup;
+non terminal AnArrayLength anArrayLength;
+non terminal AMessageSend aMessageSend; 
+non terminal AnExpressionListBlock anExpressionListBlock; 
+non terminal ExpressionList expressionList;
+non terminal AnExpressionRest anExpressionRest;
+non terminal PrimaryExpression primaryExpression;
+non terminal AnArrayAllocationExpression anArrayAllocationExpression;
+non terminal AnAllocationExpression anAllocationExpression;
+non terminal ANotExpression aNotExpression;
+non terminal ABracketExpression aBracketExpression;
+non terminal ConstantExpression constantExpression;
+non terminal ASwitchStatement aSwitchStatement;
+non terminal ACaseBlock aCaseBlock;
+non terminal ADefaultBlock aDefaultBlock;
+non terminal ACaseBlockList aCaseBlockList;
+non terminal ASwitchBlock aSwitchBlock;
+non terminal ABreakStatement aBreakStatement;
+
+// tipos Symbol consulta 
+
+terminal CLASS, LLAVEi, PUBLIC, STATIC, VOID, MAIN, PARENi, STRING, CORCHETEi, CORCHETEd, PARENd, LLAVEd, EXTENDS, PUNTOyCOMA, RETURN, COMA, CHAR, BOOLEAN, INT, ASIGN, IF, ELSE, WHILE, SYSTEM_OUT_PRINTln, AND, MENOR_QUE,MAYOR_QUE, SUMA, RESTA, MULT, DIV, PUNTO, LENGHT, TRUE, FALSE, THIS, NEW, NOT, BREAK, CASE, DOSPUNTOS, SWITCH, DEFAULT ;
+terminal String myIDENTIFIER;
+terminal String mySTRING_LITERAL;
+terminal String myCHAR_LITERAL;
+terminal String myINTEGER_LITERAL;
+
+
+precedence left CORCHETEi;
+precedence left AND;
+precedence left MENOR_QUE;
+precedence left MAYOR_QUE;
+precedence left SUMA;
+precedence left RESTA;
+precedence left MULT;
+precedence left DIV;
+precedence left PUNTO;
+precedence left COMA;
+precedence left myIDENTIFIER;
+
+
+start with aGoal;
+
+aGoal	::= mainClass:mc aTypeDecl:td 
+		{:
+			parser.raiz = new AGoal(mc,td);	
+		:};
+
+aTypeDecl ::= 	aTypeDecl:td typeDeclaration:tdecl
+		{:
+			RESULT = new ATypeDecl(td,tdecl);
+		:}
+		| 
+		{:
+			RESULT = null;
+		:}		
+		;
+
+mainClass ::= CLASS myIDENTIFIER:id1 LLAVEi PUBLIC STATIC VOID MAIN PARENi STRING CORCHETEi CORCHETEd myIDENTIFIER:id2 PARENd LLAVEi aPrintStatement:ps LLAVEd LLAVEd
+		{:
+			Symbol ident1 = new Symbol(sym.myIDENTIFIER,id1left,id1right,id1);
+			Symbol ident2 = new Symbol(sym.myIDENTIFIER,id2left,id2right,id2);
+			RESULT = new AMainClass(ident1, ident2, ps);
+		:}
+		;
+typeDeclaration ::= aClassDeclaration:cd
+		{:
+			RESULT = new ATypeClassDeclaration(cd);		
+		:}
+		 | classExtendsDeclaration:ced
+		{:
+			RESULT = new ATypeClassExtendsDeclaration(ced);
+		:} 
+		;	
+
+aClassDeclaration ::= CLASS myIDENTIFIER:id LLAVEi aVarDecl:vd aMethodDecl:md LLAVEd
+		{:
+			Symbol ident = new Symbol(sym.myIDENTIFIER,idleft,idright,id);
+			RESULT = new AClassDeclaration(ident, vd, md);
+		:}
+		 ;
+
+classExtendsDeclaration ::= CLASS myIDENTIFIER:id1 EXTENDS myIDENTIFIER:id2 LLAVEi aVarDecl:vd  aMethodDecl:md LLAVEd 
+		{:
+			Symbol ident1 = new Symbol(sym.myIDENTIFIER,id1left,id1right,id1);
+			Symbol ident2 = new Symbol(sym.myIDENTIFIER,id2left,id2right,id2);
+			RESULT = new AClassExtendsDeclaration(ident1, ident2, vd, md);	
+		:}
+		;
+
+aVarDeclaration ::= type:t myIDENTIFIER:id PUNTOyCOMA 
+		{:
+			Symbol ident = new Symbol(sym.myIDENTIFIER,idleft,idright,id);
+			RESULT = new AVarDeclaration(t,ident);
+		:}
+		;
+
+aMethodDeclaration ::= PUBLIC type:t myIDENTIFIER:id PARENi aFormalParameterBlock:fpb PARENd LLAVEi aVarDecl:vd aStatementList:sl RETURN expression:e PUNTOyCOMA LLAVEd 
+		{:
+			Symbol ident = new Symbol(sym.myIDENTIFIER,idleft,idright,id);
+			RESULT = new AMethodDeclaration(t, ident, fpb, vd, sl, e);
+		:}
+		;
+
+formalParameterList ::= aFormalParameter:fp
+		{:
+			RESULT = new AFormalParameterList(fp);
+		:}
+		| formalParameterList:fpl aFormalParameterRest:fpr 
+		{:
+			RESULT = new AFormalParameterListRest(fpl, fpr);
+		:}
+		;
+
+aFormalParameter ::= type:t myIDENTIFIER:id
+		{:
+			Symbol ident = new Symbol(sym.myIDENTIFIER,idleft,idright,id);
+			RESULT = new AFormalParameter(t,ident);
+		:}
+		;
+
+aFormalParameterRest ::= COMA formalParameterList:fpl
+		{:
+			RESULT = new AFormalParameterRest(fpl);
+		:}	
+		;
+
+type ::= 	simpleType:st 
+		{:
+			RESULT = new ATypeSimple(st);
+		:}
+		| arrayType:at
+		{:
+			RESULT = new ATypeArray	(at);
+		:}
+		| myIDENTIFIER:id
+		{:
+			Symbol ident = new Symbol(sym.myIDENTIFIER,idleft,idright,id);
+			RESULT = new ATypeIdentifier(ident);
+		:}
+		 ;
+
+
+simpleType ::= CHAR
+		{:
+			RESULT = new ASimpleTypeChar();
+		:}
+		| BOOLEAN
+		{:
+			RESULT = new ASimpleTypeBool();
+		:}
+		| INT
+		{:
+			RESULT = new ASimpleTypeInt();
+		:}
+		;
+
+
+arrayType ::= simpleType:st CORCHETEi CORCHETEd 
+		{:
+			RESULT = new AnArrayType(st);
+		:}
+		;
+
+statement ::= aBlock:b 
+		{:
+			RESULT = new AStatementBlock(b);
+		:}
+		| anAssignmentStatement:as
+		{:
+			RESULT = new AStatementAssignment(as);
+		:}
+		| anArrayAssignmentStatement:aas
+		{:
+			RESULT = new AStatementArrayAssignment(aas);
+		:}
+		| anIfStatement:is 
+		{:
+			RESULT = new AStatementIf(is);
+		:}
+		| aWhileStatement:ws
+		{:
+			RESULT = new AStatementWhile(ws);
+		:}
+		| aSwitchStatement:ss
+		{:
+			RESULT = new AStatementSwitch(ss);
+		:}
+		| aPrintStatement:ps
+		{:
+			RESULT = new AStatementPrint(ps);
+		:}
+		;
+		
+
+aBlock ::= LLAVEi aStatementList:sl LLAVEd
+		{:
+			RESULT = new ABlock(sl);
+		:}
+		;
+
+anAssignmentStatement ::= myIDENTIFIER:id ASIGN expression:e PUNTOyCOMA 
+		{:
+			Symbol ident = new Symbol(sym.myIDENTIFIER,idleft,idright,id);
+			RESULT = new AnAssignmentStatement(ident,e);
+		:}
+		; 
+
+anArrayAssignmentStatement ::= myIDENTIFIER:id CORCHETEi expression:e1 CORCHETEd ASIGN expression:e2 PUNTOyCOMA 
+		{:
+			Symbol ident = new Symbol(sym.myIDENTIFIER,idleft,idright,id);
+			RESULT = new AnArrayAssignmentStatement(ident,e1,e2);
+		:}
+		; 
+
+anIfStatement ::= IF PARENi expression:e PARENd statement:s1 ELSE statement:s2 
+		{:
+			RESULT = new AnIfStatement(e,s1,s2);
+		:}
+		;
+
+aWhileStatement ::= WHILE PARENi expression:e PARENd statement:s
+		{:
+			RESULT = new AWhileStatement(e,s);
+		:}
+		;
+
+aPrintStatement ::= SYSTEM_OUT_PRINTln PARENi expression:e PARENd PUNTOyCOMA 
+		{:
+			RESULT = new APrintStatement(e);
+		:}		
+		;
+
+expression ::= anAndExpression:ae
+		{:
+			RESULT = new AnExpressionAnd(ae);
+		:}
+		| aMenorQueExpression:menorqe 
+		{:
+			RESULT = new AnExpressionMenor(menorqe);
+		:}
+		| aMayorQueExpression:mayorqe
+		{:
+			RESULT = new AnExpressionMayor(mayorqe);
+		:}
+		| aPlusExpression: pluse
+		{:	
+			RESULT = new AnExpressionPlus(pluse);
+		:}
+		| aMinusExpression: me 
+		{:
+			RESULT = new AnExpressionMinus(me);
+		:}
+		| aDivExpression: de
+		{:
+			RESULT = new AnExpressionDiv(de);
+		:}
+		| aTimesExpression: te 
+		{:
+			RESULT = new AnExpressionTimes(te);
+		:}
+		| anArrayLookup: alookup 
+		{:
+			RESULT = new AnExpressionArrayLookup(alookup);
+		:}
+		| anArrayLength: alenght
+		{:
+			RESULT = new AnExpressionArrayLenght(alenght);
+		:}
+		| aMessageSend: ms
+		{:
+			RESULT = new AnExpressionMessage(ms);
+		:}
+		| primaryExpression:prime
+		{:
+			RESULT = new AnExpressionPrimary(prime);
+		:}
+		;
+
+anAndExpression ::= primaryExpression:pe1 AND primaryExpression:pe2
+		{:
+			RESULT = new AnAndExpression(pe1,pe2);
+		:}
+		;
+
+aMenorQueExpression ::= primaryExpression:pe1 MENOR_QUE primaryExpression:pe2
+		{:
+			RESULT = new AMenorQueExpression(pe1,pe2);
+		:}
+		;
+
+aMayorQueExpression ::= primaryExpression:pe1 MAYOR_QUE primaryExpression:pe2
+		{:
+			RESULT = new AMayorQueExpression(pe1,pe2);
+		:}
+		;
+
+aPlusExpression ::= primaryExpression:pe1 SUMA primaryExpression:pe2
+		{:
+			RESULT = new APlusExpression(pe1,pe2);
+		:}
+		;
+
+aMinusExpression ::= primaryExpression:pe1 RESTA primaryExpression:pe2
+		{:
+			RESULT = new AMinusExpression(pe1, pe2);
+		:}
+		;
+
+aDivExpression ::= primaryExpression:pe1 DIV primaryExpression:pe2
+		{:
+			RESULT = new ADivExpression(pe1,pe2);
+		:} 
+		; 
+
+aTimesExpression ::= primaryExpression:pe1 MULT primaryExpression:pe2 
+		{:
+			RESULT = new ATimesExpression(pe1,pe2);
+		:}		
+		;
+
+anArrayLookup ::= primaryExpression:pe1 CORCHETEi primaryExpression:pe2 CORCHETEd 
+		{:
+			RESULT = new AnArrayLookup(pe1,pe2);
+		:}
+		;
+
+anArrayLength ::= primaryExpression:pe PUNTO LENGHT 
+		{:
+			RESULT = new AnArrayLength(pe);
+		:}
+		;
+
+aMessageSend ::= primaryExpression:pe PUNTO myIDENTIFIER:id PARENi anExpressionListBlock:elb PARENd 
+		{:
+			Symbol ident = new Symbol(sym.myIDENTIFIER,idleft,idright,id);
+			RESULT = new AMessageSend(pe,ident,elb);
+		:}	
+		;
+
+expressionList ::= expression:e 
+		{:
+			RESULT = new AnExpressionList(e);
+		:}
+		|	expressionList:el anExpressionRest:er
+		{:
+			RESULT = new AnExpressionListRest(el,er);
+		:}
+		;
+	
+anExpressionRest ::= COMA expressionList:el 
+		{:
+			RESULT = new AnExpressionRest(el);
+		:}
+		;
+
+
+primaryExpression ::= myINTEGER_LITERAL:il
+		{:
+			Symbol int_lit = new Symbol(sym.myINTEGER_LITERAL,illeft,ilright,il);
+			RESULT = new APrimaryInteger(int_lit);
+		:}
+		| myCHAR_LITERAL:cl
+		{:
+			Symbol char_lit = new Symbol(sym.myCHAR_LITERAL,clleft,clright,cl);
+			RESULT = new APrimaryChar(char_lit);
+		:}
+		| mySTRING_LITERAL:sl
+		{:
+			Symbol string_lit = new Symbol(sym.mySTRING_LITERAL,slleft,slright,sl);
+			RESULT = new APrimaryString(string_lit);
+		:}
+		| TRUE
+		{:
+			RESULT = new APrimaryTrue();
+		:}
+		| FALSE
+		{:
+			RESULT = new APrimaryFalse();
+		:}
+		| myIDENTIFIER:id
+		{:
+			Symbol ident = new Symbol(sym.myIDENTIFIER,idleft,idright,id);
+			RESULT = new APrimaryIdentifier(ident);
+		:}
+		| THIS
+		{:
+			RESULT = new APrimaryThis();
+		:}
+		| anArrayAllocationExpression:aae
+		{:
+			RESULT = new APrimaryArray(aae);
+		:}
+		| anAllocationExpression:ae
+		{:
+			RESULT = new APrimaryAllocationExpression(ae);
+		:}
+		| aNotExpression:ne
+		{:
+			RESULT = new APrimaryNotExpression(ne);
+		:}
+		| aBracketExpression:be
+		{:
+			RESULT = new APrimaryBracket(be);
+		:}
+		;
+
+constantExpression ::=  myINTEGER_LITERAL:il
+		{:
+			Symbol int_lit = new Symbol(sym.myINTEGER_LITERAL,illeft,ilright,il);
+			RESULT = new AConstantInteger(int_lit);
+		:}
+		| myCHAR_LITERAL:cl
+		{:
+			Symbol char_lit = new Symbol(sym.myCHAR_LITERAL,clleft,clright,cl);
+			RESULT = new AConstantChar(char_lit);
+		:}
+		| mySTRING_LITERAL:sl
+		{:
+			Symbol string_lit = new Symbol(sym.mySTRING_LITERAL,slleft,slright,sl);
+			RESULT = new AConstantString(string_lit);
+		:}
+		| TRUE
+		{:
+			RESULT = new AConstantTrue();
+		:}
+		| FALSE
+		{:
+			RESULT = new AConstantFalse();
+		:}
+		;
+
+
+anArrayAllocationExpression ::= NEW simpleType:st CORCHETEi expression:e CORCHETEd 
+		{:
+			RESULT = new AnArrayAllocationExpression(st,e);
+		:}
+		;
+
+anAllocationExpression ::= NEW myIDENTIFIER:id PARENi PARENd 
+		{:
+			Symbol ident = new Symbol(sym.myIDENTIFIER,idleft,idright,id);
+			RESULT = new AnAllocationExpression(ident);
+		:}		
+		;
+
+aNotExpression ::= NOT expression:e
+		{:
+			RESULT = new ANotExpression(e);
+		:}	
+		;
+
+aBracketExpression ::= PARENi expression:e PARENd
+		{:
+			RESULT = new ABracketExpression(e);
+		:}	
+		;
+
+aVarDecl ::= aVarDecl:vd aVarDeclaration:vdec 
+		{:
+			RESULT = new AVarDecl(vd, vdec);
+		:}
+		| 
+		{:
+			RESULT = null;
+		:}		
+		;
+
+aMethodDecl ::= aMethodDecl:md aMethodDeclaration:mdec
+		{:
+			RESULT = new AMethodDecl(md,mdec);
+		:} 
+		| 
+		{:
+			RESULT = null;
+		:}		
+		;
+
+aStatementList ::= aStatementList:sl statement:s
+		{:
+			RESULT = new AStatementList(sl,s);
+		:}
+		| 
+		{:
+			RESULT = null;
+		:}		
+		;
+
+anExpressionListBlock ::= expressionList:el
+		{:
+			RESULT = new AnExpressionListBlock(el);
+		:}
+		| 
+		{:
+			RESULT = null;
+		:}		
+		;
+
+aFormalParameterBlock ::= formalParameterList:fpl
+		{:
+			RESULT = new AFormalParameterBlock(fpl);
+		:}
+		| 
+		{:
+			RESULT = null;
+		:}		
+		;
+
+aSwitchStatement ::= SWITCH PARENi expression:e PARENd LLAVEi aSwitchBlock:sb LLAVEd 
+		{:
+			RESULT = new ASwitchStatement(e,sb);
+		:};
+
+aCaseBlock ::= CASE constantExpression:ce DOSPUNTOS aStatementList:sl aBreakStatement:bs	
+		{:
+			RESULT = new ACaseBlock(ce,sl,bs);
+		:}
+		;
+
+aDefaultBlock ::= DEFAULT DOSPUNTOS aStatementList:sl aBreakStatement:bs
+		{:
+			RESULT = new ADefaultBlock(sl,bs);
+		:}
+		| 
+		{:
+			RESULT = null;
+		:}		
+		;
+
+aCaseBlockList ::= aCaseBlockList:cbl aCaseBlock:cb
+		{:
+			RESULT = new ACaseBlockList(cbl,cb);
+		:}
+		| 
+		{:
+			RESULT = null;	
+		:}
+		;
+
+aSwitchBlock ::= aCaseBlockList:cbl aDefaultBlock:db
+		{:
+			RESULT = new ASwitchBlock(cbl,db);
+		:}
+		;
+
+aBreakStatement ::= BREAK PUNTOyCOMA
+		{:
+			RESULT = new ABreakStatement();
+		:}
+		| 
+		{:
+			RESULT = null;	
+		:}
+		;

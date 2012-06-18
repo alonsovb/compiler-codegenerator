@@ -15,10 +15,9 @@ import javax.swing.table.TableModel;
  * @author Alonso
  */
 public final class IdentifierTable {
-    
+
     // Inicio de la lista de identificadores
     Identifier i;
-    
     // Nivel actual para insertar los tokens
     int currentLevel;
 
@@ -33,7 +32,7 @@ public final class IdentifierTable {
         Expression chrExp = new AnExpressionPrimary(new APrimaryChar(null));
         Expression intExp = new AnExpressionPrimary(new APrimaryInteger(null));
         //</editor-fold>
-        
+
         // Insertar los métodos predefinidos
         this.enter("chr", new AMethodDeclaration(chrType, null, pIntList, null, null, chrExp));
         this.enter("ord", new AMethodDeclaration(intType, null, pChrList, null, null, intExp));
@@ -42,6 +41,7 @@ public final class IdentifierTable {
 
     /**
      * Insertar un identificador en la tabla
+     *
      * @param name Nombre del identificador
      * @param attribute Puntero al árbol
      */
@@ -143,7 +143,7 @@ public final class IdentifierTable {
             String tipoDeclarado = TypeUtilities.getClass(param.fpl0);
             String tipoEnviado = list.e0.visit(visitor, arg).toString();
             if (!tipoDeclarado.equals(tipoEnviado)) {
-                throw new Exception(metodo + ", parámetro " + nivel + ": Se esperaba un " + tipoDeclarado + ". Se envió un " + tipoEnviado);
+                throw new Exception(metodo + ": Se esperaba un " + tipoDeclarado + ". Se envió un " + tipoEnviado);
             }
         } // Comparar que 
         else if (FPL.getClass() == AFormalParameterListRest.class
@@ -151,18 +151,29 @@ public final class IdentifierTable {
             //Casting para hacer la llamada recursiva
             AFormalParameterListRest AFPR = (AFormalParameterListRest) FPL;
             AnExpressionListRest AELR = (AnExpressionListRest) EL;
+            
+            nivel++;
 
-            AFormalParameterList param = (AFormalParameterList) AFPR.fpl0;
-            AnExpressionList list = (AnExpressionList) AELR.el0;
-            // Comparar si son del mismo tipo la expresion y el parametro
-            String tipoDeclarado = TypeUtilities.getClass(param.fpl0);
-            String tipoEnviado = list.e0.visit(visitor, arg).toString();
-            if (!tipoDeclarado.equals(tipoEnviado)) {
-                throw new Exception(metodo + ", parámetro " + nivel + ": Se esperaba un " + tipoDeclarado + ". Se envió un " + tipoEnviado);
+            if (AFPR.fpl0.getClass() == AFormalParameterList.class &&
+                    AELR.el0.getClass() == AnExpressionList.class) {
+                AFormalParameterList param = (AFormalParameterList) AFPR.fpl0;
+                AnExpressionList list = (AnExpressionList) AELR.el0;
+                // Comparar si son del mismo tipo la expresion y el parametro
+                String tipoDeclarado = TypeUtilities.getClass(param.fpl0);
+                String tipoEnviado = list.e0.visit(visitor, arg).toString();
+                if (!tipoDeclarado.equals(tipoEnviado)) {
+                    throw new Exception(metodo + ", parámetro " + nivel + ": Se esperaba un " + tipoDeclarado + ". Se envió un " + tipoEnviado);
+                }
+            } else if (AFPR.fpl0.getClass() == AFormalParameterListRest.class &&
+                    AELR.el0.getClass() == AnExpressionListRest.class) {
+                AFormalParameterListRest param = (AFormalParameterListRest) AFPR.fpl0;
+                AnExpressionListRest list = (AnExpressionListRest) AELR.el0;
+                compareParameters(metodo, param, list, nivel, visitor, arg);
+            } else {
+                throw new Exception(metodo + ": La cantidad de parámetros no coincide.");
             }
-
             // Realiza la llamada recursiva 
-            compareParameters(metodo, AFPR.fpr1.fpl0, AELR.er1.el, nivel + 1, visitor, arg);
+            compareParameters(metodo, AFPR.fpr1.fpl0, AELR.er1.el, nivel, visitor, arg);
         } else {
             throw new Exception(metodo + ": La cantidad de parámetros no coincide.");
         }
@@ -171,6 +182,7 @@ public final class IdentifierTable {
 
     /**
      * Informa si existe el método enviado
+     *
      * @param MD
      * @param method
      * @return True si existe, False de otra forma
@@ -184,11 +196,11 @@ public final class IdentifierTable {
             return existMethod(MD.md0, method);
         }
     }
-    
+
     // Indica si un método existe
     AMethodDeclaration existMethod(String Method, String Class) {
         Object tClass = retrieve(Class);
-        
+
         if ("len".equals(Method) || "ord".equals(Method) || "chr".equals(Method)) {
             AMethodDeclaration result = (AMethodDeclaration) this.retrieve(Method, true);
             return result;
@@ -199,14 +211,15 @@ public final class IdentifierTable {
         } else if (tClass.getClass() == AClassExtendsDeclaration.class) {
             AClassExtendsDeclaration eType = (AClassExtendsDeclaration) tClass;
             AMethodDeclaration result = existMethod(eType.md1, Method);
-            if (result != null)
+            if (result != null) {
                 return result;
-            else {
+            } else {
                 result = existMethod(Method, eType.id2.value.toString());
                 return result;
             }
-        } else 
+        } else {
             return null;
+        }
     }
 
     // Obtiene un modelo de tabla para ser mostrado luego
