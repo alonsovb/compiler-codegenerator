@@ -297,7 +297,20 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAnAssignmentStatement(AnAssignmentStatement c, Object arg) {
+
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+
+        // Cargar el resultado de evaluar la expresión
         c.e0.visit(this, arg);
+
+        String id = c.id1.value.toString();
+        String dtype = TypeUtilities.getDeclaration(table.retrieveAll(id));
+        if (dtype.equals("var")) {
+            // Guardar por defecto en la pos 1
+            gen.writeCodeLine(className, "    istore 1");
+        }
+
         return null;
     }
 
@@ -311,10 +324,22 @@ public final class generarCodigo implements Visitor {
     @Override
     public Object visitAnIfStatement(AnIfStatement c, Object arg) {
 
-        c.e0.visit(this, arg);
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
 
+        c.e0.visit(this, arg);
+        gen.writeCodeLine(className, "    ifne then" + num_et);
+        gen.writeCodeLine(className, "    goto else" + num_et);
+
+        // Si se cumple la condición generar código
+        gen.writeCodeLine(className, "  then" + num_et + ":");
         c.s1.visit(this, arg);
+        gen.writeCodeLine(className, "    goto ifend" + num_et);
+        gen.writeCodeLine(className, "  else" + num_et + ":");
         c.s2.visit(this, arg);
+        gen.writeCodeLine(className, "  ifend" + num_et + ":");
+
+        num_et++;
 
         return null;
     }
@@ -425,7 +450,7 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAMayorQueExpression(AMayorQueExpression c, Object arg) {
-        
+
         HashMap<String, String> args = (HashMap<String, String>) arg;
         String className = args.get("class");
 
@@ -449,14 +474,14 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAPlusExpression(APlusExpression c, Object arg) {
-        
+
         HashMap<String, String> args = (HashMap<String, String>) arg;
         String className = args.get("class");
 
         // Cargar las dos expresiones
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        
+
         gen.writeCodeLine(className, "    iadd");
         return null;
     }
@@ -469,7 +494,7 @@ public final class generarCodigo implements Visitor {
         // Cargar las dos expresiones
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        
+
         gen.writeCodeLine(className, "    isub");
         return null;
     }
@@ -482,7 +507,7 @@ public final class generarCodigo implements Visitor {
         // Cargar las dos expresiones
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        
+
         gen.writeCodeLine(className, "    imul");
         return null;
     }
@@ -495,7 +520,7 @@ public final class generarCodigo implements Visitor {
         // Cargar las dos expresiones
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        
+
         gen.writeCodeLine(className, "    idiv");
         return null;
     }
@@ -535,8 +560,6 @@ public final class generarCodigo implements Visitor {
             }
             // c.pe0.visit(this, arg);
         }
-
-
 
         return null;
     }
@@ -593,10 +616,10 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAPrimaryIdentifier(APrimaryIdentifier c, Object arg) {
-        
+
         HashMap<String, String> args = (HashMap<String, String>) arg;
         String className = args.get("class");
-        
+
         String id = c.id1.value.toString();
         String declType = TypeUtilities.getDeclaration(table.retrieveAll(id));
         if (declType.equals("param")) {
