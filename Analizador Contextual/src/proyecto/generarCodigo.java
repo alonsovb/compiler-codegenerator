@@ -260,13 +260,14 @@ public final class generarCodigo implements Visitor {
     public Object visitAPrintStatement(APrintStatement c, Object arg) {
         
         HashMap<String, String> args = (HashMap<String, String>) arg;
-        String className = args.get("clase");
+        String className = args.get("class");
         
         c.e0.visit(this, arg);
+        gen.writeCodeLine(className, "    istore 1");
         gen.writeCodeLine(className, "    getstatic java/lang/System/out Ljava/io/PrintStream;");
-        //"  aload 0 /n"
-        //"  invokestatic java/lang/String/valueOf(I)Ljava/lang/String;"
-        //"  invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V /n"
+        gen.writeCodeLine(className, "    iload 1");
+        gen.writeCodeLine(className, "    invokestatic java/lang/String/valueOf(I)Ljava/lang/String;");
+        gen.writeCodeLine(className, "    invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V");
         return null;
     }
 
