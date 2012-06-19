@@ -5,7 +5,6 @@
 package proyecto;
 
 import AST.*;
-import java.io.*;
 
 /**
  *
@@ -21,34 +20,28 @@ public final class generarCodigo implements Visitor {
         code = c;
         visitAGoal(c, null);
     }
-    int num_et = 0;
-    int num_var = 0;
 
     @Override
     public Object visitAGoal(AGoal c, Object arg) {
-        if (c.td != null) {
+        if (c.td != null)
             c.td.visit(this, arg);
-        }
         c.mc.visit(this, arg);
         return null;
     }
 
     @Override
     public Object visitATypeDecl(ATypeDecl c, Object arg) {
-        if (c.td1 != null) {
+        if (c.td1 != null)
             c.td1.visit(this, arg);
-        }
-        if (c.td2 != null) {
+        if (c.td2 != null)
             c.td2.visit(this, arg);
-        }
         return null;
     }
 
     @Override
     public Object visitAMainClass(AMainClass c, Object arg) {
-        if (c.ps0 != null) {
+        if (c.ps0 != null)
             c.ps0.visit(this, arg);
-        }
         // Crear un archivo para la clase principal
         gen.createClassFile(c.id1.value.toString());
         mainClass = c.id1.value.toString();
@@ -57,48 +50,39 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitATypeClassDeclaration(ATypeClassDeclaration c, Object arg) {
-        if (c.cd0 != null) {
+        if (c.cd0 != null)
             c.cd0.visit(this, arg);
-        }
         return null;
     }
 
     @Override
     public Object visitATypeClassExtendsDeclaration(ATypeClassExtendsDeclaration c, Object arg) {
-        if (c.ced0 != null) {
+        if (c.ced0 != null)
             c.ced0.visit(this, arg);
-        }
         return null;
     }
 
     @Override
     public Object visitAClassDeclaration(AClassDeclaration c, Object arg) {
         gen.createClassFile(c.id1.value.toString());
-        if (c.vd0 != null) {
+        if (c.vd0 != null)
             c.vd0.visit(this, arg);
-        }
-        if (c.md1 != null) {
+        if (c.md1 != null)
             c.md1.visit(this, arg);
-        }
         return null;
     }
 
     @Override
     public Object visitAClassExtendsDeclaration(AClassExtendsDeclaration c, Object arg) {
-        if (c.md1 != null) {
+        if (c.md1 != null)
             c.md1.visit(this, arg);
-        }
-        if (c.vd0 != null) {
+        if (c.vd0 != null)
             c.vd0.visit(this, arg);
-        }
         return null;
     }
 
     @Override
     public Object visitAVarDeclaration(AVarDeclaration c, Object arg) {
-        //"  istore "+num_var + "/n"
-        //Modificar el puntero del arbol con la pos
-
         return null;
     }
 
@@ -211,9 +195,6 @@ public final class generarCodigo implements Visitor {
     @Override
     public Object visitAStatementPrint(AStatementPrint c, Object arg) {
         c.ps0.visit(this, arg);
-        //"  getstatic java/lang/System/out Ljava/io/PrintStream; /n" 
-        //"  aload 1 /n"
-        //"  invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V /n"
         return null;
     }
 
@@ -239,7 +220,6 @@ public final class generarCodigo implements Visitor {
     @Override
     public Object visitAnIfStatement(AnIfStatement c, Object arg) {
         c.e0.visit(this, arg);
-
         c.s1.visit(this, arg);
         c.s2.visit(this, arg);
         return null;
@@ -254,12 +234,7 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAPrintStatement(APrintStatement c, Object arg) {
-
         c.e0.visit(this, arg);
-        //"  getstatic java/lang/System/out Ljava/io/PrintStream; /n" 
-        //"  aload 0 /n"
-        //"  invokestatic java/lang/String/valueOf(I)Ljava/lang/String;"
-        //"  invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V /n"
         return null;
     }
 
@@ -315,7 +290,6 @@ public final class generarCodigo implements Visitor {
     public Object visitAnAndExpression(AnAndExpression c, Object arg) {
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        //"  iand"
         return null;
     }
 
@@ -323,16 +297,6 @@ public final class generarCodigo implements Visitor {
     public Object visitAMenorQueExpression(AMenorQueExpression c, Object arg) {
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-
-        //"  if_icmplt " + true+num_et + "/n"
-        //"    goto " false+num_et + "/n"
-        //"true"+num_et + ": /n"
-        //"    ldc 1 /n"
-        //"    goto salida"+num_et +" /n"
-        //"false"+num_et + ": /n"
-        //"     ldc 0 /n"
-        //"     goto salida"+num_et + " /n"
-        //"salida"+num_et + ": /n"
         return null;
     }
 
@@ -340,15 +304,6 @@ public final class generarCodigo implements Visitor {
     public Object visitAMayorQueExpression(AMayorQueExpression c, Object arg) {
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        //"  if_icmpgt " + true+num_et + "/n"
-        //"  goto " false+num_et + "/n"
-        //"true"+num_et + ": /n"
-        //"  ldc 1 /n"
-        //"  goto salida"+num_et +" /n"
-        //"false"+num_et + ": /n"
-        //"  ldc 0 /n"
-        //"  goto salida"+num_et + " /n"
-        //"salida"+num_et + ": /n"
         return null;
     }
 
@@ -356,7 +311,6 @@ public final class generarCodigo implements Visitor {
     public Object visitAPlusExpression(APlusExpression c, Object arg) {
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        //"  iadd /n"
         return null;
     }
 
@@ -364,7 +318,6 @@ public final class generarCodigo implements Visitor {
     public Object visitAMinusExpression(AMinusExpression c, Object arg) {
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        //"  isub /n"
         return null;
     }
 
@@ -372,7 +325,6 @@ public final class generarCodigo implements Visitor {
     public Object visitATimesExpression(ATimesExpression c, Object arg) {
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        //"  imul /n"
         return null;
     }
 
@@ -380,7 +332,6 @@ public final class generarCodigo implements Visitor {
     public Object visitADivExpression(ADivExpression c, Object arg) {
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        //"  idiv"
         return null;
     }
 
@@ -425,7 +376,6 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAPrimaryInteger(APrimaryInteger c, Object arg) {
-        //"iload " 
         return null;
     }
 
@@ -441,7 +391,7 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAPrimaryTrue(APrimaryTrue c, Object arg) {
-        return null;
+       return null;
     }
 
     @Override
@@ -451,7 +401,6 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAPrimaryIdentifier(APrimaryIdentifier c, Object arg) {
-        ///
         return null;
     }
 
@@ -530,42 +479,35 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAMethodDecl(AMethodDecl c, Object arg) {
-        if (c.md0 != null) {
+        if (c.md0 != null)
             c.md0.visit(this, arg);
-        }
-        if (c.md1 != null) {
+        if (c.md1 != null)
             c.md1.visit(this, arg);
-        }
         return null;
     }
 
     @Override
     public Object visitAStatementList(AStatementList c, Object arg) {
-        if (c.s1 != null) {
+        if (c.s1 != null)
             c.s1.visit(this, arg);
-        }
-        if (c.sl0 != null) {
+        if (c.sl0 != null)
             c.sl0.visit(this, arg);
-        }
         return null;
     }
 
     @Override
     public Object visitAnExpressionListBlock(AnExpressionListBlock c, Object arg) {
-        if (c.el0 != null) {
+        if (c.el0 != null)
             c.el0.visit(this, arg);
-        }
         return null;
     }
 
     @Override
     public Object visitASwitchStatement(ASwitchStatement c, Object arg) {
-        if (c.e0 != null) {
+        if (c.e0 != null)
             c.e0.visit(this, arg);
-        }
-        if (c.sb1 != null) {
+        if (c.sb1 != null)
             c.sb1.visit(this, arg);
-        }
         return null;
     }
 
@@ -654,3 +596,4 @@ public final class generarCodigo implements Visitor {
         return null;
     }
 }
+;

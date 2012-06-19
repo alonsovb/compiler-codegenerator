@@ -8,10 +8,8 @@ import AST.AGoal;
 import AST.AST;
 import Imprimir.imprimir_arbol;
 import java.awt.BorderLayout;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.nio.CharBuffer;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,10 +22,7 @@ import javax.swing.event.CaretListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import proyecto.ContextAnalizer;
-import proyecto.Driver;
-import proyecto.ErrorReporter;
-import proyecto.IdentifierTable;
+import proyecto.*;
 
 /**
  *
@@ -36,6 +31,9 @@ import proyecto.IdentifierTable;
 public class EditorFrame extends javax.swing.JFrame implements ErrorReporter {
 
     private JFileChooser fileChooser = new JFileChooser(System.getProperty("user.dir"));
+    
+    // Contador para los errores reportados durante las fases
+    int totalErrors;
 
     /**
      * Creates new form Editor
@@ -347,7 +345,6 @@ public class EditorFrame extends javax.swing.JFrame implements ErrorReporter {
         this.TerminalPane.setText("");
 
         Driver d = new Driver(this);
-//        try {
         AST arbol = null;
         try {
             arbol = d.parse(source);
@@ -355,26 +352,37 @@ public class EditorFrame extends javax.swing.JFrame implements ErrorReporter {
             Logger.getLogger(EditorFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
         if (arbol != null) {
+            // Imprimir el árbol en el JTree
             Imprimir.imprimir_arbol imp = new imprimir_arbol();
             DefaultMutableTreeNode tree = new DefaultMutableTreeNode();
             AGoal goal = (AGoal) arbol;
             imp.visitAGoal(goal, tree);
             Tree.setModel(new DefaultTreeModel(tree));
 
+            // Análisis contextual
             IdentifierTable table = new IdentifierTable();
+            totalErrors = 0;
             ContextAnalizer ca = new ContextAnalizer(table, this);
             ca.visit(goal);
+            
+            // Mostrar los identificadores en el JTable
             TableIdentifiers.setModel(table.getTableModel());
 
             ReportMessage("Successfully compiled.");
+            
+            // Generar código únicamente si no se encontraron errores
+            if (totalErrors == 0) {
+                generarCodigo generador = new generarCodigo(goal);
+                try {
+                    // Crear un nuevo proceso para ejecutar jasmin y generar los ensamblados .class
+                    Process jasmin = Runtime.getRuntime().exec(new String[] {"java", "-jar", "jasmin.jar", generador.mainClass + ".j"});
+                } catch (IOException ex) {
+                    System.out.println(ex.getMessage());
+                }
+            } else {
+                this.ReportMessage("Imposible generar el código. " + totalErrors + " error(es).");
+            }
         }
-//        } catch (NullPointerException npe) {
-//            // reportError("Null pointer");
-//            System.out.println("Null pointer");
-//        } catch (Exception ex) {
-//            ReportError(ex.getMessage());
-//        }
-
     }//GEN-LAST:event_CompileMenuItemActionPerformed
 
     private void ExpandAllTreeMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExpandAllTreeMenuActionPerformed
@@ -395,6 +403,7 @@ public class EditorFrame extends javax.swing.JFrame implements ErrorReporter {
 
     @Override
     public void ReportError(String message) {
+        totalErrors++;
         TerminalPane.setText(TerminalPane.getText() + "\n" + message);
     }
 
