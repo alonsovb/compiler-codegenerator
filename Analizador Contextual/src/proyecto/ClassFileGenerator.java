@@ -4,9 +4,9 @@
  */
 package proyecto;
 
-import java.io.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  *

@@ -6,6 +6,7 @@ package proyecto;
 
 import AST.*;
 import java.io.*;
+import java.util.HashMap;
 
 /**
  *
@@ -47,7 +48,9 @@ public final class generarCodigo implements Visitor {
     @Override
     public Object visitAMainClass(AMainClass c, Object arg) {
         if (c.ps0 != null) {
-            c.ps0.visit(this, arg);
+            HashMap<String, String> args = new HashMap<String, String>();
+            args.put("class", c.id1.value.toString());
+            c.ps0.visit(this, args);
         }
         // Crear un archivo para la clase principal
         gen.createClassFile(c.id1.value.toString());
@@ -74,22 +77,26 @@ public final class generarCodigo implements Visitor {
     @Override
     public Object visitAClassDeclaration(AClassDeclaration c, Object arg) {
         gen.createClassFile(c.id1.value.toString());
+        HashMap<String, String> args = new HashMap<String, String>();
+            args.put("class", c.id1.value.toString());
         if (c.vd0 != null) {
-            c.vd0.visit(this, arg);
+            c.vd0.visit(this, args);
         }
         if (c.md1 != null) {
-            c.md1.visit(this, arg);
+            c.md1.visit(this, args);
         }
         return null;
     }
 
     @Override
     public Object visitAClassExtendsDeclaration(AClassExtendsDeclaration c, Object arg) {
+        HashMap<String, String> args = new HashMap<String, String>();
+            args.put("class", c.id1.value.toString());
         if (c.md1 != null) {
-            c.md1.visit(this, arg);
+            c.md1.visit(this, args);
         }
         if (c.vd0 != null) {
-            c.vd0.visit(this, arg);
+            c.vd0.visit(this, args);
         }
         return null;
     }
@@ -211,9 +218,6 @@ public final class generarCodigo implements Visitor {
     @Override
     public Object visitAStatementPrint(AStatementPrint c, Object arg) {
         c.ps0.visit(this, arg);
-        //"  getstatic java/lang/System/out Ljava/io/PrintStream; /n" 
-        //"  aload 1 /n"
-        //"  invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V /n"
         return null;
     }
 
@@ -254,9 +258,12 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAPrintStatement(APrintStatement c, Object arg) {
-
+        
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("clase");
+        
         c.e0.visit(this, arg);
-        //"  getstatic java/lang/System/out Ljava/io/PrintStream; /n" 
+        gen.writeCodeLine(className, "    getstatic java/lang/System/out Ljava/io/PrintStream;");
         //"  aload 0 /n"
         //"  invokestatic java/lang/String/valueOf(I)Ljava/lang/String;"
         //"  invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V /n"
