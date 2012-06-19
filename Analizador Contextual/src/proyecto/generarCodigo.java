@@ -5,7 +5,6 @@
 package proyecto;
 
 import AST.*;
-import java.io.*;
 import java.util.HashMap;
 
 /**
@@ -15,15 +14,19 @@ import java.util.HashMap;
 public final class generarCodigo implements Visitor {
 
     AST code;
-    public String mainClass;
     ClassFileGenerator gen = new ClassFileGenerator();
-
-    public generarCodigo(AGoal c) {
-        code = c;
-        visitAGoal(c, null);
-    }
+    int stack = 0, locals = 1;
+    private int NumVar = 0;
+    public String ClassName;
+    IdentifierTable table;
     int num_et = 0;
     int num_var = 0;
+
+    public generarCodigo(AGoal Goal, IdentifierTable Table) {
+        code = Goal;
+        table = Table;
+        visitAGoal(Goal, null);
+    }
 
     @Override
     public Object visitAGoal(AGoal c, Object arg) {
@@ -47,14 +50,35 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAMainClass(AMainClass c, Object arg) {
+
+        String className = c.id1.value.toString();
+        this.ClassName = className;
+
+        // Crear un archivo para la clase principal
+        gen.createClassFile(className);
+
+        gen.writeCodeLine(className, ".method public static main([Ljava/lang/String;)V");
+        gen.writeCodeLine(className, ".limit stack {0}");
+        gen.writeCodeLine(className, ".limit locals {1}");
+
+        locals = 1;
+        stack = 0;
+
         if (c.ps0 != null) {
             HashMap<String, String> args = new HashMap<String, String>();
-            args.put("class", c.id1.value.toString());
+            args.put("class", className);
             c.ps0.visit(this, args);
         }
-        // Crear un archivo para la clase principal
-        gen.createClassFile(c.id1.value.toString());
-        mainClass = c.id1.value.toString();
+
+        gen.replaceValues(className, "{0}", String.valueOf(stack));
+        gen.replaceValues(className, "{1}", String.valueOf(locals));
+
+        gen.writeCodeLine(className, "    return");
+        gen.writeCodeLine(className, ".end method");
+        gen.writeCodeLine(className);
+
+        gen.writeFile(className);
+
         return null;
     }
 
@@ -76,22 +100,32 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAClassDeclaration(AClassDeclaration c, Object arg) {
-        gen.createClassFile(c.id1.value.toString());
+
+        String className = c.id1.value.toString();
+
+        // Crear un archivo para la clase
+        gen.createClassFile(className);
+
         HashMap<String, String> args = new HashMap<String, String>();
-            args.put("class", c.id1.value.toString());
+        args.put("class", className);
+
         if (c.vd0 != null) {
             c.vd0.visit(this, args);
         }
         if (c.md1 != null) {
             c.md1.visit(this, args);
         }
+
+
+        gen.writeFile(className);
+
         return null;
     }
 
     @Override
     public Object visitAClassExtendsDeclaration(AClassExtendsDeclaration c, Object arg) {
         HashMap<String, String> args = new HashMap<String, String>();
-            args.put("class", c.id1.value.toString());
+        args.put("class", c.id1.value.toString());
         if (c.md1 != null) {
             c.md1.visit(this, args);
         }
@@ -103,17 +137,51 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAVarDeclaration(AVarDeclaration c, Object arg) {
-        //"  istore "+num_var + "/n"
-        //Modificar el puntero del arbol con la pos
+
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+
+        locals++;
+        c.pos = ++NumVar;
 
         return null;
     }
 
     @Override
     public Object visitAMethodDeclaration(AMethodDeclaration c, Object arg) {
+
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+
+        String methodName = c.id1.value.toString();
+        // Por defecto recibe un entero y devuelve entero
+        gen.writeCodeLine(className, ".method public static " + methodName + "(I)I");
+        gen.writeCodeLine(className, ".limit stack {0}");
+        gen.writeCodeLine(className, ".limit locals {1}");
+
+        locals = 1;
+        stack = 0;
+
+        // Por el momento no se visita
+        // c.fpb1.visit(this, arg);
+        if (c.vd2 != null) {
+            c.vd2.visit(this, arg);
+        }
+
+        if (c.sl3 != null) {
+            c.sl3.visit(this, arg);
+        }
+
+        // Poner en la pila el retorno
         c.e4.visit(this, arg);
-        c.fpb1.visit(this, arg);
-        c.sl3.visit(this, arg);
+
+        gen.replaceValues(className, "{0}", String.valueOf(stack));
+        gen.replaceValues(className, "{1}", String.valueOf(locals));
+
+        gen.writeCodeLine(className, "    ireturn");
+        gen.writeCodeLine(className, ".end method");
+        gen.writeCodeLine(className);
+
         return null;
     }
 
@@ -242,10 +310,12 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAnIfStatement(AnIfStatement c, Object arg) {
+
         c.e0.visit(this, arg);
 
         c.s1.visit(this, arg);
         c.s2.visit(this, arg);
+
         return null;
     }
 
@@ -258,12 +328,14 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAPrintStatement(APrintStatement c, Object arg) {
-        
+
         HashMap<String, String> args = (HashMap<String, String>) arg;
         String className = args.get("class");
-        
+
         c.e0.visit(this, arg);
+        locals++;
         gen.writeCodeLine(className, "    istore 1");
+        stack++;
         gen.writeCodeLine(className, "    getstatic java/lang/System/out Ljava/io/PrintStream;");
         gen.writeCodeLine(className, "    iload 1");
         gen.writeCodeLine(className, "    invokestatic java/lang/String/valueOf(I)Ljava/lang/String;");
@@ -329,66 +401,102 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAMenorQueExpression(AMenorQueExpression c, Object arg) {
+
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+
+        // Obtener ambos parámetros
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
 
-        //"  if_icmplt " + true+num_et + "/n"
-        //"    goto " false+num_et + "/n"
-        //"true"+num_et + ": /n"
-        //"    ldc 1 /n"
-        //"    goto salida"+num_et +" /n"
-        //"false"+num_et + ": /n"
-        //"     ldc 0 /n"
-        //"     goto salida"+num_et + " /n"
-        //"salida"+num_et + ": /n"
+        // Escribir código para generar verdadero o falso
+        gen.writeCodeLine(className, "    if_icmplt true" + num_et);
+        gen.writeCodeLine(className, "    goto false" + num_et);
+        gen.writeCodeLine(className, "  true" + num_et + ":");
+        gen.writeCodeLine(className, "    ldc 1");
+        gen.writeCodeLine(className, "    goto exit" + num_et);
+        gen.writeCodeLine(className, "  false" + num_et + ":");
+        gen.writeCodeLine(className, "    ldc 0");
+        gen.writeCodeLine(className, "  exit" + num_et + ":");
+        num_et++;
+
         return null;
     }
 
     @Override
     public Object visitAMayorQueExpression(AMayorQueExpression c, Object arg) {
+        
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+
+        // Obtener ambos parámetros
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        //"  if_icmpgt " + true+num_et + "/n"
-        //"  goto " false+num_et + "/n"
-        //"true"+num_et + ": /n"
-        //"  ldc 1 /n"
-        //"  goto salida"+num_et +" /n"
-        //"false"+num_et + ": /n"
-        //"  ldc 0 /n"
-        //"  goto salida"+num_et + " /n"
-        //"salida"+num_et + ": /n"
+
+        // Escribir código para generar verdadero o falso
+        gen.writeCodeLine(className, "    if_icmpgt true" + num_et);
+        gen.writeCodeLine(className, "    goto false" + num_et);
+        gen.writeCodeLine(className, "  true" + num_et + ":");
+        gen.writeCodeLine(className, "    ldc 1");
+        gen.writeCodeLine(className, "    goto exit" + num_et);
+        gen.writeCodeLine(className, "  false" + num_et + ":");
+        gen.writeCodeLine(className, "    ldc 0");
+        gen.writeCodeLine(className, "  exit" + num_et + ":");
+        num_et++;
+
         return null;
     }
 
     @Override
     public Object visitAPlusExpression(APlusExpression c, Object arg) {
+        
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+
+        // Cargar las dos expresiones
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        //"  iadd /n"
+        
+        gen.writeCodeLine(className, "    iadd");
         return null;
     }
 
     @Override
     public Object visitAMinusExpression(AMinusExpression c, Object arg) {
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+
+        // Cargar las dos expresiones
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        //"  isub /n"
+        
+        gen.writeCodeLine(className, "    isub");
         return null;
     }
 
     @Override
     public Object visitATimesExpression(ATimesExpression c, Object arg) {
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+
+        // Cargar las dos expresiones
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        //"  imul /n"
+        
+        gen.writeCodeLine(className, "    imul");
         return null;
     }
 
     @Override
     public Object visitADivExpression(ADivExpression c, Object arg) {
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+
+        // Cargar las dos expresiones
         c.pe0.visit(this, arg);
         c.pe1.visit(this, arg);
-        //"  idiv"
+        
+        gen.writeCodeLine(className, "    idiv");
         return null;
     }
 
@@ -407,8 +515,29 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAMessageSend(AMessageSend c, Object arg) {
-        c.elb1.visit(this, arg);
-        c.pe0.visit(this, arg);
+
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+
+        // Visitar las expresiones enviadas y dejarlas en la pila
+        if (c.elb1 != null) {
+            c.elb1.visit(this, arg);
+        }
+
+        if (c.pe0 != null) {
+            if (c.pe0.getClass() == APrimaryAllocationExpression.class) {
+                APrimaryAllocationExpression PId = (APrimaryAllocationExpression) c.pe0;
+                String PClass = PId.ae0.id1.value.toString();
+                String MethodName = c.id1.value.toString();
+
+                // Escribir el nombre del método que se visitará
+                gen.writeCodeLine(className, "    invokestatic " + PClass + "/" + MethodName + "(I)I");
+            }
+            // c.pe0.visit(this, arg);
+        }
+
+
+
         return null;
     }
 
@@ -434,6 +563,11 @@ public final class generarCodigo implements Visitor {
     @Override
     public Object visitAPrimaryInteger(APrimaryInteger c, Object arg) {
         //"iload " 
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+        stack++;
+        gen.writeCodeLine(className, "    ldc " + c.int1.value.toString());
+
         return null;
     }
 
@@ -459,7 +593,19 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAPrimaryIdentifier(APrimaryIdentifier c, Object arg) {
-        ///
+        
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+        
+        String id = c.id1.value.toString();
+        String declType = TypeUtilities.getDeclaration(table.retrieveAll(id));
+        if (declType.equals("param")) {
+            // Cargar por defecto parámetro 1
+            gen.writeCodeLine(className, "    iload 0");
+        } else if (declType.equals("var")) {
+            // Cargar por defecto variable 1
+            gen.writeCodeLine(className, "    iload 1");
+        }
         return null;
     }
 
@@ -531,8 +677,12 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAVarDecl(AVarDecl c, Object arg) {
-        c.vd0.visit(this, arg);
-        c.vd0.visit(this, arg);
+        if (c.vd0 != null) {
+            c.vd0.visit(this, arg);
+        }
+        if (c.vd1 != null) {
+            c.vd1.visit(this, arg);
+        }
         return null;
     }
 

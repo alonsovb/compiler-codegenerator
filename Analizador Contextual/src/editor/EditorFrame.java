@@ -372,10 +372,10 @@ public class EditorFrame extends javax.swing.JFrame implements ErrorReporter {
             
             // Generar código únicamente si no se encontraron errores
             if (totalErrors == 0) {
-                generarCodigo generador = new generarCodigo(goal);
+                generarCodigo generador = new generarCodigo(goal, table);
                 try {
                     // Crear un nuevo proceso para ejecutar jasmin y generar los ensamblados .class
-                    Process jasmin = Runtime.getRuntime().exec(new String[] {"java", "-jar", "jasmin.jar", generador.mainClass + ".j"});
+                    Process jasmin = Runtime.getRuntime().exec(new String[] {"java", "-jar", "jasmin.jar", generador.ClassName + ".j"});
                 } catch (IOException ex) {
                     System.out.println(ex.getMessage());
                 }

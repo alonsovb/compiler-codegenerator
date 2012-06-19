@@ -113,4 +113,15 @@ public class TypeUtilities {
             return Class.getClass().getName();
         }
     }
+    
+    public static String getDeclaration(AST Item) {
+        // Declaraciones de variables
+        if (Item.getClass() == AVarDeclaration.class) {
+            return "var";
+        } // Parámetros
+        else if (Item.getClass() == AFormalParameter.class) {
+            return "param";
+        } else 
+            return "null";
+    }
 }
