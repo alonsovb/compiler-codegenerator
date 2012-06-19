@@ -33,6 +33,7 @@
     iload 0
     ldc 1
     isub
+    invokestatic Factorial/CalcularFactorial(I)I
     imul
     istore 1
   ifend1:

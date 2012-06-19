@@ -550,11 +550,18 @@ public final class generarCodigo implements Visitor {
         }
 
         if (c.pe0 != null) {
+            
+            String MethodName = c.id1.value.toString();
+            
             if (c.pe0.getClass() == APrimaryAllocationExpression.class) {
                 APrimaryAllocationExpression PId = (APrimaryAllocationExpression) c.pe0;
                 String PClass = PId.ae0.id1.value.toString();
-                String MethodName = c.id1.value.toString();
-
+                
+                // Escribir el nombre del método que se visitará
+                gen.writeCodeLine(className, "    invokestatic " + PClass + "/" + MethodName + "(I)I");
+            } else if (c.pe0.getClass() == APrimaryThis.class) {
+                String PClass = c.pe0.visit(this, arg).toString();
+                
                 // Escribir el nombre del método que se visitará
                 gen.writeCodeLine(className, "    invokestatic " + PClass + "/" + MethodName + "(I)I");
             }
@@ -634,7 +641,9 @@ public final class generarCodigo implements Visitor {
 
     @Override
     public Object visitAPrimaryThis(APrimaryThis c, Object arg) {
-        return null;
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+        return className;
     }
 
     @Override
