@@ -13,7 +13,7 @@
 .limit stack 2
 .limit locals 2
     ldc 10
-    invokestatic Factorial/CalcularFactorial(I)I
+    invokestatic Fibonacci/CalcularFibonacci(I)I
     istore 1
     getstatic java/lang/System/out Ljava/io/PrintStream;
     iload 1

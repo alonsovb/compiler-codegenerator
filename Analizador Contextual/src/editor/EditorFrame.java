@@ -4,8 +4,6 @@
  */
 package editor;
 
-import AST.AGoal;
-import AST.AST;
 import proyecto.TreePrinter;
 import java.awt.BorderLayout;
 import java.io.*;
@@ -22,7 +20,6 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import proyecto.*;
-import sun.misc.IOUtils;
 
 /**
  *
@@ -31,8 +28,6 @@ import sun.misc.IOUtils;
 public class EditorFrame extends javax.swing.JFrame implements Reporter {
 
     private JFileChooser fileChooser = new JFileChooser(System.getProperty("user.dir"));
-    // Contador para los errores reportados durante las fases
-    int totalErrors;
 
     /**
      * Creates new form Editor
@@ -135,6 +130,7 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
         QuitMenuItem = new javax.swing.JMenuItem();
         RunMenu = new javax.swing.JMenu();
         CompileMenuItem = new javax.swing.JMenuItem();
+        RunMenuItem = new javax.swing.JMenuItem();
         TreeMenu = new javax.swing.JMenu();
         ExpandAllTreeMenu = new javax.swing.JMenuItem();
         CollapseAllMenuItem = new javax.swing.JMenuItem();
@@ -238,14 +234,23 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
 
         RunMenu.setText("Run");
 
-        CompileMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, java.awt.event.InputEvent.CTRL_MASK));
-        CompileMenuItem.setText("Compile");
+        CompileMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_B, java.awt.event.InputEvent.CTRL_MASK));
+        CompileMenuItem.setText("Build");
         CompileMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 CompileMenuItemActionPerformed(evt);
             }
         });
         RunMenu.add(CompileMenuItem);
+
+        RunMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, java.awt.event.InputEvent.CTRL_MASK));
+        RunMenuItem.setText("Run");
+        RunMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                RunMenuItemActionPerformed(evt);
+            }
+        });
+        RunMenu.add(RunMenuItem);
 
         jMenuBar1.add(RunMenu);
 
@@ -344,80 +349,15 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
         this.TerminalPane.setText("");
 
         Driver d = new Driver(this, source);
+        
+        // Compilar
         if (d.compile()) {
             // Imprimir arbol gráfico
             DefaultMutableTreeNode TreeModel = new TreePrinter().Print(d.getAST());
             Tree.setModel(new DefaultTreeModel(TreeModel));
-            
+            // Mostrar tabla de identificadores
             TableIdentifiers.setModel(d.getTable().getTableModel());
         }
-        
-        /*AST arbol = null;
-        try {
-            arbol = d.parse(source);
-        } catch (Exception ex) {
-            Logger.getLogger(EditorFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        if (arbol != null) {
-            // Imprimir el árbol en el JTree
-            proyecto.TreePrinter imp = new TreePrinter();
-            DefaultMutableTreeNode tree = new DefaultMutableTreeNode();
-            AGoal goal = (AGoal) arbol;
-            imp.visitAGoal(goal, tree);
-            Tree.setModel(new DefaultTreeModel(tree));
-
-            // Análisis contextual
-            IdentifierTable table = new IdentifierTable();
-            totalErrors = 0;
-            ContextAnalizer ca = new ContextAnalizer(table, this);
-            ca.visit(goal);
-
-            // Mostrar los identificadores en el JTable
-            TableIdentifiers.setModel(table.getTableModel());
-
-            
-/*
-            // Generar código únicamente si no se encontraron errores
-            if (totalErrors == 0) {
-                generarCodigo generador = new generarCodigo(goal, table);
-                try {
-                    // Crear un nuevo proceso para ejecutar jasmin y generar cada ensamblado .class
-                    for (int i = 0; i < generador.getGeneratedClasses().size(); i++) {
-                        Process jasmingen = Runtime.getRuntime().exec(new String[]{"java", "-jar", "jasmin.jar", generador.getGeneratedClasses().get(i) + ".j"});
-                        try {
-                            jasmingen.waitFor();
-                        } catch (InterruptedException inter) {
-                            continue;
-                        }
-                    }
-                    // Crear un proceso para ejecutar el código generado
-                    Process jasmin = Runtime.getRuntime().exec(new String[]{"java", generador.getMainClass()});
-
-                    InputStream inputStream = jasmin.getInputStream();
-                    InputStream errorStream = jasmin.getErrorStream();
-
-                    try {
-                        String inputString = new Scanner(inputStream).useDelimiter("\\A").next();
-                        ReportMessage("Salida del programa:");
-                        ReportMessage(inputString);
-                    } catch (Exception ex) {
-                        System.out.println("Nada por leer en input");
-                    }
-                    try {
-                        String errorString = new Scanner(errorStream).useDelimiter("\\A").next();
-                        ReportMessage("Resultados del error:");
-                        ReportMessage(errorString);
-                    } catch (Exception ex) {
-                        System.out.println("Nada por leer en error");
-                    }
-
-                } catch (IOException ex) {
-                    System.out.println(ex.getMessage());
-                }
-            } else {
-                this.ReportMessage("Imposible generar el código. " + totalErrors + " error(es).");
-            }
-        } */
         
     }//GEN-LAST:event_CompileMenuItemActionPerformed
 
@@ -437,9 +377,26 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
 
     }//GEN-LAST:event_CollapseAllMenuItemActionPerformed
 
+    private void RunMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RunMenuItemActionPerformed
+        
+        
+        // Obtener código del editor
+        String source = EditorPane.getText();
+        this.TerminalPane.setText("");
+
+        Driver d = new Driver(this, source);
+        if (d.run()) {
+            // Imprimir arbol gráfico
+            DefaultMutableTreeNode TreeModel = new TreePrinter().Print(d.getAST());
+            Tree.setModel(new DefaultTreeModel(TreeModel));
+            
+            TableIdentifiers.setModel(d.getTable().getTableModel());
+        }
+        
+    }//GEN-LAST:event_RunMenuItemActionPerformed
+
     @Override
     public void ReportError(String message) {
-        totalErrors++;
         TerminalPane.setText(TerminalPane.getText() + "\n" + message);
     }
 
@@ -502,6 +459,7 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
     private javax.swing.JMenuItem OpenFileMenuItem;
     private javax.swing.JMenuItem QuitMenuItem;
     private javax.swing.JMenu RunMenu;
+    private javax.swing.JMenuItem RunMenuItem;
     private javax.swing.JMenuItem SaveFileMenuItem;
     private javax.swing.JSplitPane SplitPanel;
     private javax.swing.JTable TableIdentifiers;

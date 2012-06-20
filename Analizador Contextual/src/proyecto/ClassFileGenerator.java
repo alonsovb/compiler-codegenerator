@@ -16,6 +16,11 @@ import java.util.HashMap;
 public class ClassFileGenerator {
 
     HashMap<String, StringBuilder> Files = new HashMap<String, StringBuilder>();
+    Reporter reporter;
+    
+    public ClassFileGenerator(Reporter Reporter) {
+        reporter = Reporter;
+    }
 
     public void createClassFile(String ClassName) {
         Files.put(ClassName, new StringBuilder());
@@ -37,7 +42,7 @@ public class ClassFileGenerator {
         if (builder != null) {
             builder.append(Code).append("\n");
         } else {
-            System.out.println("No se encuentra el string para " + ClassName + " al escribir \n" + Code);
+            this.reporter.ReportError("Cannot find string for " + ClassName + " when writing \n" + Code);
         }
     }
     
@@ -46,26 +51,26 @@ public class ClassFileGenerator {
         if (builder != null) {
             builder.append("\n");
         } else {
-            System.out.println("No se encuentra el string para " + ClassName + " al escribir una nueva línea");
+            this.reporter.ReportError("Cannot find string for " + ClassName + " when writing new line");
         }
     }
 
     public void writeFile(String ClassName) {
         File f;
         f = new File(ClassName + ".j");
-        System.out.println("Escribiendo a " + ClassName + ".j"); // Cambiar para mostrar en ventana
+        reporter.ReportMessage("Created file " + ClassName + ".j");
         f.delete();
         try {
             f.createNewFile();
         } catch (IOException ex) {
-            System.out.print("No se pudo crear el archivo " + ClassName);
+            reporter.ReportError("Cannot create file " + ClassName);
         }
         try {
             FileWriter writer = new FileWriter(f);
             writer.write(Files.get(ClassName).toString());
             writer.close();
         } catch (Exception ex) {
-            System.out.print("No se pudo escribir al archivo " + ClassName);
+            reporter.ReportError("Cannot write to file " + ClassName);
         }
     }
     
@@ -76,7 +81,7 @@ public class ClassFileGenerator {
             Files.remove(ClassName);
             Files.put(ClassName, builder);
         } else {
-            System.out.println("No se encuentra el string para " + ClassName + " al remplazar " + ToReplace + " por " + NewValue);
+            reporter.ReportError("Cannot find string for " + ClassName + " when replacing " + ToReplace + " to " + NewValue);
         }
     }
 }

@@ -13,10 +13,11 @@ import java.util.List;
  *
  * @author sancho
  */
-public final class generarCodigo implements Visitor {
+public final class CodeGenerator implements Visitor {
 
     AST code;
-    ClassFileGenerator gen = new ClassFileGenerator();
+    Reporter reporter;
+    ClassFileGenerator gen;
     int stack = 0, locals = 1;
     IdentifierTable table;
     private int NumEt = 0;
@@ -25,10 +26,13 @@ public final class generarCodigo implements Visitor {
     private List<String> GeneratedClasses = new LinkedList<String>();
     private String MainClass;
 
-    public generarCodigo(AGoal Goal, IdentifierTable Table) {
+    public CodeGenerator(AST Goal, IdentifierTable Table, Reporter Reporter) {
         code = Goal;
         table = Table;
-        visitAGoal(Goal, null);
+        reporter = Reporter;
+        gen = new ClassFileGenerator(reporter);
+        visitAGoal((AGoal) Goal, null);
+        
     }
 
     @Override
