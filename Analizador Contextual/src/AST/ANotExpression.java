@@ -1,6 +1,6 @@
 package AST;
 
-public class ANotExpression extends AST {
+public class ANotExpression extends Expression {
 	public Expression e0;
 
 	public ANotExpression(Expression E0) {

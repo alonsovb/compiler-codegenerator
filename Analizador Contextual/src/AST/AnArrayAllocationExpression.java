@@ -1,6 +1,6 @@
 package AST;
 
-public class AnArrayAllocationExpression extends AST {
+public class AnArrayAllocationExpression extends Expression {
 	public SimpleType st0;
 	public Expression e1;
 

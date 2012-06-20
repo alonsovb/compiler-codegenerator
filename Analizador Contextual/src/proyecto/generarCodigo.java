@@ -5,7 +5,6 @@
 package proyecto;
 
 import AST.*;
-import java.util.AbstractList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -336,7 +335,9 @@ public final class generarCodigo implements Visitor {
         String className = args.get("class");
 
         int et = NumEt;
-
+        if (1 < 2) {
+        } else {
+        }
         c.e0.visit(this, arg);
         gen.writeCodeLine(className, "    ifne then" + et);
         gen.writeCodeLine(className, "    goto else" + et);

@@ -1,6 +1,6 @@
 package AST;
 
-public class AnArrayLength extends AST {
+public class AnArrayLength extends Expression {
 	public PrimaryExpression pe0;
 
 	public AnArrayLength(PrimaryExpression PE0) {

@@ -1,4 +1,4 @@
-package Imprimir;
+package proyecto;
 
 import AST.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -7,7 +7,13 @@ import javax.swing.tree.DefaultMutableTreeNode;
  *
  * @author sancho
  */
-public class imprimir_arbol implements Visitor {
+public class TreePrinter implements Visitor {
+    
+    public DefaultMutableTreeNode Print(AST Root) {
+        DefaultMutableTreeNode tree = new DefaultMutableTreeNode();
+        visitAGoal((AGoal) Root, tree);
+        return tree;
+    }
 
     public Object visitAGoal(AGoal aThis, Object arg) {
 

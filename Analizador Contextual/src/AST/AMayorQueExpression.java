@@ -1,6 +1,6 @@
 package AST;
 
-public class AMayorQueExpression extends AST {
+public class AMayorQueExpression extends Expression {
 	public PrimaryExpression pe0;
 	public PrimaryExpression pe1;
 

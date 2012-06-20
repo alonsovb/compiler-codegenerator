@@ -22,13 +22,13 @@
   false0:
     ldc 0
   exit0:
-    ifne then1
-    goto else1
-  then1:
+    ifne then0
+    goto else0
+  then0:
     ldc 1
     istore 1
-    goto ifend1
-  else1:
+    goto ifend0
+  else0:
     iload 0
     iload 0
     ldc 1
@@ -36,7 +36,7 @@
     invokestatic Factorial/CalcularFactorial(I)I
     imul
     istore 1
-  ifend1:
+  ifend0:
     iload 1
     ireturn
 .end method

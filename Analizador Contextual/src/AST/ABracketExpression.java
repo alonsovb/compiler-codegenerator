@@ -1,6 +1,6 @@
 package AST;
 
-public class ABracketExpression extends AST {
+public class ABracketExpression extends Expression {
 	public Expression e0;
 
 	public ABracketExpression(Expression E0) {

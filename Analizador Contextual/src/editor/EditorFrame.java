@@ -6,7 +6,7 @@ package editor;
 
 import AST.AGoal;
 import AST.AST;
-import Imprimir.imprimir_arbol;
+import proyecto.TreePrinter;
 import java.awt.BorderLayout;
 import java.io.*;
 import java.util.Scanner;
@@ -28,7 +28,7 @@ import sun.misc.IOUtils;
  *
  * @author Alonso
  */
-public class EditorFrame extends javax.swing.JFrame implements ErrorReporter {
+public class EditorFrame extends javax.swing.JFrame implements Reporter {
 
     private JFileChooser fileChooser = new JFileChooser(System.getProperty("user.dir"));
     // Contador para los errores reportados durante las fases
@@ -343,8 +343,16 @@ public class EditorFrame extends javax.swing.JFrame implements ErrorReporter {
         String source = EditorPane.getText();
         this.TerminalPane.setText("");
 
-        Driver d = new Driver(this);
-        AST arbol = null;
+        Driver d = new Driver(this, source);
+        if (d.compile()) {
+            // Imprimir arbol gráfico
+            DefaultMutableTreeNode TreeModel = new TreePrinter().Print(d.getAST());
+            Tree.setModel(new DefaultTreeModel(TreeModel));
+            
+            TableIdentifiers.setModel(d.getTable().getTableModel());
+        }
+        
+        /*AST arbol = null;
         try {
             arbol = d.parse(source);
         } catch (Exception ex) {
@@ -352,7 +360,7 @@ public class EditorFrame extends javax.swing.JFrame implements ErrorReporter {
         }
         if (arbol != null) {
             // Imprimir el árbol en el JTree
-            Imprimir.imprimir_arbol imp = new imprimir_arbol();
+            proyecto.TreePrinter imp = new TreePrinter();
             DefaultMutableTreeNode tree = new DefaultMutableTreeNode();
             AGoal goal = (AGoal) arbol;
             imp.visitAGoal(goal, tree);
@@ -367,8 +375,8 @@ public class EditorFrame extends javax.swing.JFrame implements ErrorReporter {
             // Mostrar los identificadores en el JTable
             TableIdentifiers.setModel(table.getTableModel());
 
-            ReportMessage("Successfully compiled.");
-
+            
+/*
             // Generar código únicamente si no se encontraron errores
             if (totalErrors == 0) {
                 generarCodigo generador = new generarCodigo(goal, table);
@@ -409,7 +417,8 @@ public class EditorFrame extends javax.swing.JFrame implements ErrorReporter {
             } else {
                 this.ReportMessage("Imposible generar el código. " + totalErrors + " error(es).");
             }
-        }
+        } */
+        
     }//GEN-LAST:event_CompileMenuItemActionPerformed
 
     private void ExpandAllTreeMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExpandAllTreeMenuActionPerformed

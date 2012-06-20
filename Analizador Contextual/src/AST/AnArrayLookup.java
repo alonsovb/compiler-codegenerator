@@ -1,6 +1,6 @@
 package AST;
 
-public class AnArrayLookup extends AST {
+public class AnArrayLookup extends Expression {
 	public PrimaryExpression pe0;
 	public PrimaryExpression pe1;
 

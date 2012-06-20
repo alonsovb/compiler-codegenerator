@@ -1,6 +1,6 @@
 package AST;
 
-public class AMinusExpression extends AST {
+public class AMinusExpression extends Expression {
 	public PrimaryExpression pe0;
 	public PrimaryExpression pe1;
 

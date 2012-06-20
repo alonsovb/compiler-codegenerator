@@ -1,6 +1,6 @@
 package AST;
 
-public class APlusExpression extends AST {
+public class APlusExpression extends Expression {
 	public PrimaryExpression pe0;
 	public PrimaryExpression pe1;
 

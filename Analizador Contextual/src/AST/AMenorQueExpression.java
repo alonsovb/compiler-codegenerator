@@ -1,6 +1,6 @@
 package AST;
 
-public class AMenorQueExpression extends AST {
+public class AMenorQueExpression extends Expression {
 	public PrimaryExpression pe0;
 	public PrimaryExpression pe1;
 

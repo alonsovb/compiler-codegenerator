@@ -8,7 +8,7 @@ package proyecto;
  *
  * @author Alonso
  */
-public interface ErrorReporter {
+public interface Reporter {
     public void ReportMessage(String message);
     public void ReportError(String message);
 }

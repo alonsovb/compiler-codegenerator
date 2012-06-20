@@ -2,7 +2,7 @@ package AST;
 
 import java_cup.runtime.Symbol;
 
-public class AMessageSend extends AST {
+public class AMessageSend extends Expression {
 	public PrimaryExpression pe0;
 	public Symbol id1;
 	public AnExpressionListBlock elb1;

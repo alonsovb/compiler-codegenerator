@@ -10,16 +10,16 @@ import java.util.HashMap;
 public class ContextAnalizer implements Visitor {
 
     private IdentifierTable it;
-    private ErrorReporter reporter;
+    private Reporter reporter;
 
-    public ContextAnalizer(IdentifierTable table, ErrorReporter er) {
+    public ContextAnalizer(IdentifierTable table, Reporter er) {
         this.it = table;
         this.reporter = er;
     }
 
-    public void visit(AGoal Inicio) {
+    public void visit(AST Inicio) {
         java.util.HashMap<String, Object> h = new HashMap<String, Object>();
-        this.visitAGoal(Inicio, h);
+        this.visitAGoal((AGoal) Inicio, h);
     }
 
     @Override
@@ -368,29 +368,34 @@ public class ContextAnalizer implements Visitor {
     @Override
     public Object visitAnExpressionAnd(AnExpressionAnd c, Object arg) {
         c.ae0.visit(this, arg);
-        return "bool";
+        c.type = "bool";
+        return c.type;
     }
 
     @Override
     public Object visitAnExpressionPlus(AnExpressionPlus c, Object arg) {
-        return c.pe0.visit(this, arg);
+        c.type = c.pe0.visit(this, arg).toString();
+        return c.type;
     }
 
     @Override
     public Object visitAnExpressionMinus(AnExpressionMinus c, Object arg) {
         c.me0.visit(this, arg);
-        return "int";
+        c.type = "int";
+        return c.type;
     }
 
     @Override
     public Object visitAnExpressionTimes(AnExpressionTimes c, Object arg) {
         c.te0.visit(this, arg);
-        return "int";
+        c.type = "int";
+        return c.type;
     }
 
     @Override
     public Object visitAnExpressionArrayLookup(AnExpressionArrayLookup c, Object arg) {
-        return c.al0.visit(this, arg);
+        c.type = c.al0.visit(this, arg).toString();
+        return c.type;
     }
 
     @Override
@@ -401,12 +406,14 @@ public class ContextAnalizer implements Visitor {
 
     @Override
     public Object visitAnExpressionMessage(AnExpressionMessage c, Object arg) {
-        return c.ms0.visit(this, arg);
+        c.type = c.ms0.visit(this, arg).toString();
+        return c.type;
     }
 
     @Override
     public Object visitAnExpressionPrimary(AnExpressionPrimary c, Object arg) {
-        return c.pe0.visit(this, arg);
+        c.type = c.pe0.visit(this, arg).toString();
+        return c.type;
     }
 
     @Override
@@ -419,7 +426,8 @@ public class ContextAnalizer implements Visitor {
         if (exp1Class != "bool" || exp2Class != "bool") {
             reporter.ReportError("Se esperaban tipos booleanos para la expresión And");
         }
-        return "bool";
+        c.type = "bool";
+        return c.type;
     }
 
     @Override
@@ -432,7 +440,8 @@ public class ContextAnalizer implements Visitor {
         if (exp1Class != "int" || exp2Class != "int") {
             reporter.ReportError("Se esperaban tipos entero para la comparación (<)");
         }
-        return "bool";
+        c.type = "bool";
+        return c.type;
     }
 
     @Override
@@ -445,7 +454,8 @@ public class ContextAnalizer implements Visitor {
         if (exp1Class != "int" || exp2Class != "int") {
             reporter.ReportError("Se esperaban tipos entero para la comparación (>)");
         }
-        return "bool";
+        c.type = "bool";
+        return c.type;
     }
 
     @Override
@@ -457,17 +467,21 @@ public class ContextAnalizer implements Visitor {
 
         if (exp1Class == null || exp2Class == null) {
             reporter.ReportError("No se puede aplicar la operación de suma, uno de los valores es inválido");
-            return "int";
+            c.type = "int";
+            return c.type;
         }
 
         // Comprobar que las clases sean enteras o strings
         if (exp1Class == "int" && exp2Class == "int") {
-            return "int";
+            c.type = "int";
+            return c.type;
         } else if (exp1Class == "string" && exp2Class == "string") {
-            return "string";
+            c.type = "string";
+            return c.type;
         } else {
             reporter.ReportError("No se puede aplicar la operación de suma " + exp1Class.toString() + " + " + exp2Class.toString());
-            return "indeterminado";
+            c.type = "unset";
+            return c.type;
         }
     }
 
@@ -481,7 +495,8 @@ public class ContextAnalizer implements Visitor {
         if (exp1Class != "int" || exp2Class != "int") {
             reporter.ReportError("Se esperaban tipos entero en la resta");
         }
-        return "int";
+        c.type = "int";
+        return c.type;
     }
 
     @Override
@@ -494,7 +509,8 @@ public class ContextAnalizer implements Visitor {
         if (exp1Class != "int" || exp2Class != "int") {
             reporter.ReportError("Se esperaban tipos entero en la multiplicación");
         }
-        return "int";
+        c.type = "int";
+        return c.type;
     }
 
     @Override
@@ -507,7 +523,8 @@ public class ContextAnalizer implements Visitor {
         if (exp1Class != "int" || exp2Class != "int") {
             reporter.ReportError("Se esperaban tipos entero en la división");
         }
-        return "int";
+        c.type = "int";
+        return c.type;
     }
 
     @Override
@@ -515,7 +532,8 @@ public class ContextAnalizer implements Visitor {
         // Arreglar esto
         if ((c.pe1.visit(this, arg) == "int")
                 && (c.pe0.visit(this, arg) == ATypeArray.class)) {
-            return "bool";
+            c.type = "bool";
+            return c.type;
         } else if (c.pe1.visit(this, arg) == "int") {
             reporter.ReportError("Se espera un valor de tipo entero como índice de arreglo");
         } else {
@@ -527,10 +545,10 @@ public class ContextAnalizer implements Visitor {
     @Override
     public Object visitAnArrayLength(AnArrayLength c, Object arg) {
         if (c.pe0.visit(this, arg) == AnArrayType.class) {
-            return "int";
-        } else {
-            reporter.ReportError("Se espera un tipo de arreglo para obtener su tamaño");
+            c.type = "int";
+            return c.type;
         }
+        reporter.ReportError("Se espera un tipo de arreglo para obtener su tamaño");
         return "int";
     }
 
@@ -563,7 +581,8 @@ public class ContextAnalizer implements Visitor {
                 }
             }
         }
-        return claseDevuelta;
+        c.type = claseDevuelta;
+        return c.type;
     }
 
     @Override
@@ -595,33 +614,41 @@ public class ContextAnalizer implements Visitor {
 
     @Override
     public Object visitAPrimaryInteger(APrimaryInteger c, Object arg) {
-        return "int";
+        c.type = "int";
+        return c.type;
     }
 
     @Override
     public Object visitAPrimaryChar(APrimaryChar c, Object arg) {
-        return "char";
+        c.type = "char";
+        return c.type;
     }
 
     @Override
     public Object visitAPrimaryString(APrimaryString c, Object arg) {
-        return "string";
+        c.type = "string";
+        return c.type;
     }
 
     @Override
     public Object visitAPrimaryTrue(APrimaryTrue c, Object arg) {
-        return "bool";
+        c.type = "bool";
+        return c.type;
     }
 
     @Override
     public Object visitAPrimaryFalse(APrimaryFalse c, Object arg) {
-        return "bool";
+        c.type = "bool";
+        return c.type;
     }
 
     @Override
     public Object visitAPrimaryIdentifier(APrimaryIdentifier c, Object arg) {
-        if (it.exists(c.id1.value.toString())) {
-            return TypeUtilities.getClass(it.retrieve(c.id1.value.toString()));
+        String id = c.id1.value.toString();
+        if (it.exists(id)) {
+            c.declaration = it.retrieve(id);
+            c.type = TypeUtilities.getClass(c.declaration);
+            return c.type;
         } else {
             reporter.ReportError("No se encuentra el identificador " + c.id1.value.toString());
             return null;
@@ -632,18 +659,21 @@ public class ContextAnalizer implements Visitor {
     public Object visitAPrimaryThis(APrimaryThis c, Object arg) {
         HashMap args = (HashMap) arg;
         AST clase = (AST) args.get("Clase");
-        return TypeUtilities.getClass(clase);
+        c.type = TypeUtilities.getClass(clase);
+        return c.type;
     }
 
     @Override
     public Object visitAPrimaryAllocationExpression(APrimaryAllocationExpression c, Object arg) {
-        return c.ae0.visit(this, arg);
+        c.type = c.ae0.visit(this, arg).toString();
+        return c.type;
     }
 
     @Override
     public Object visitAPrimaryNotExpression(APrimaryNotExpression c, Object arg) {
         c.ne0.visit(this, arg);
-        return "bool";
+        c.type = "bool";
+        return c.type;
     }
 
     @Override
@@ -677,7 +707,8 @@ public class ContextAnalizer implements Visitor {
             reporter.ReportError("Se esperaba un entero en el tamaño de alocación");
         }
         String tipoSimple = (String) c.st0.visit(this, arg);
-        return tipoSimple + "[]";
+        c.type = tipoSimple + "[]";
+        return c.type;
     }
 
     @Override
@@ -690,12 +721,14 @@ public class ContextAnalizer implements Visitor {
         if (c.e0.visit(this, arg) != "bool") {
             reporter.ReportError("Se esperaba un valor booleano para la expresión de negación");
         }
-        return "bool";
+        c.type = "bool";
+        return c.type;
     }
 
     @Override
     public Object visitABracketExpression(ABracketExpression c, Object arg) {
-        return c.e0.visit(this, arg);
+        c.type = c.e0.visit(this, arg).toString();
+        return c.type;
     }
 
     @Override
@@ -838,23 +871,27 @@ public class ContextAnalizer implements Visitor {
     @Override
     public Object visitAnExpressionDiv(AnExpressionDiv c, Object arg) {
         c.de0.visit(this, arg);
-        return "int";
+        c.type = "int";
+        return c.type;
     }
 
     @Override
     public Object visitAnExpressionMayor(AnExpressionMayor c, Object arg) {
         c.mqe0.visit(this, arg);
-        return "bool";
+        c.type = "bool";
+        return c.type;
     }
 
     @Override
     public Object visitAnExpressionMenor(AnExpressionMenor c, Object arg) {
         c.mqe0.visit(this, arg);
-        return "bool";
+        c.type = "bool";
+        return c.type;
     }
 
     @Override
     public Object visitAPrimaryBracket(APrimaryBracket c, Object arg) {
-        return c.be0.visit(this, arg);
+        c.type = c.be0.visit(this, arg).toString();
+        return c.type;
     }
 }

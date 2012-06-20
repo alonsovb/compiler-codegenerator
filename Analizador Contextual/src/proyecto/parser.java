@@ -518,7 +518,7 @@ public class parser extends java_cup.runtime.lr_parser {
     }
     Scanner scanner;
     public AST raiz;
-    public editor.EditorFrame frame;
+    public Reporter reporter;
 
     public parser(java.io.Reader input) {
         scanner = new Scanner(input);
@@ -571,8 +571,8 @@ public class parser extends java_cup.runtime.lr_parser {
 
         }
         m.append(". ").append(message);
-        if (frame != null) {
-            frame.ReportError(m.toString());
+        if (reporter != null) {
+            reporter.ReportError(m.toString());
         }
     }
 
