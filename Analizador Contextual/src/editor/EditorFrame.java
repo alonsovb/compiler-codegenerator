@@ -9,7 +9,6 @@ import AST.AST;
 import Imprimir.imprimir_arbol;
 import java.awt.BorderLayout;
 import java.io.*;
-import java.nio.CharBuffer;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,6 +22,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import proyecto.*;
+import sun.misc.IOUtils;
 
 /**
  *
@@ -31,7 +31,6 @@ import proyecto.*;
 public class EditorFrame extends javax.swing.JFrame implements ErrorReporter {
 
     private JFileChooser fileChooser = new JFileChooser(System.getProperty("user.dir"));
-    
     // Contador para los errores reportados durante las fases
     int totalErrors;
 
@@ -364,18 +363,46 @@ public class EditorFrame extends javax.swing.JFrame implements ErrorReporter {
             totalErrors = 0;
             ContextAnalizer ca = new ContextAnalizer(table, this);
             ca.visit(goal);
-            
+
             // Mostrar los identificadores en el JTable
             TableIdentifiers.setModel(table.getTableModel());
 
             ReportMessage("Successfully compiled.");
-            
+
             // Generar código únicamente si no se encontraron errores
             if (totalErrors == 0) {
                 generarCodigo generador = new generarCodigo(goal, table);
                 try {
-                    // Crear un nuevo proceso para ejecutar jasmin y generar los ensamblados .class
-                    Process jasmin = Runtime.getRuntime().exec(new String[] {"java", "-jar", "jasmin.jar", generador.ClassName + ".j"});
+                    // Crear un nuevo proceso para ejecutar jasmin y generar cada ensamblado .class
+                    for (int i = 0; i < generador.getGeneratedClasses().size(); i++) {
+                        Process jasmingen = Runtime.getRuntime().exec(new String[]{"java", "-jar", "jasmin.jar", generador.getGeneratedClasses().get(i) + ".j"});
+                        try {
+                            jasmingen.waitFor();
+                        } catch (InterruptedException inter) {
+                            continue;
+                        }
+                    }
+                    // Crear un proceso para ejecutar el código generado
+                    Process jasmin = Runtime.getRuntime().exec(new String[]{"java", generador.getMainClass()});
+
+                    InputStream inputStream = jasmin.getInputStream();
+                    InputStream errorStream = jasmin.getErrorStream();
+
+                    try {
+                        String inputString = new Scanner(inputStream).useDelimiter("\\A").next();
+                        ReportMessage("Salida del programa:");
+                        ReportMessage(inputString);
+                    } catch (Exception ex) {
+                        System.out.println("Nada por leer en input");
+                    }
+                    try {
+                        String errorString = new Scanner(errorStream).useDelimiter("\\A").next();
+                        ReportMessage("Resultados del error:");
+                        ReportMessage(errorString);
+                    } catch (Exception ex) {
+                        System.out.println("Nada por leer en error");
+                    }
+
                 } catch (IOException ex) {
                     System.out.println(ex.getMessage());
                 }
