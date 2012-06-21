@@ -12,6 +12,8 @@
 .method public static CalcularFactorial(I)I
 .limit stack 3
 .limit locals 2
+    ldc 0
+    istore 1
     iload 0
     ldc 1
     if_icmplt true0

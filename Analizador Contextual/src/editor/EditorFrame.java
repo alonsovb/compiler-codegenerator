@@ -196,7 +196,7 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
         jSplitPane1.setTopComponent(SplitPanel);
 
         TerminalPane.setEditable(false);
-        TerminalPane.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
+        TerminalPane.setFont(new java.awt.Font("Ubuntu Mono", 0, 12)); // NOI18N
         jScrollPane1.setViewportView(TerminalPane);
 
         jSplitPane1.setRightComponent(jScrollPane1);
@@ -385,24 +385,25 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
         this.TerminalPane.setText("");
 
         Driver d = new Driver(this, source);
-        if (d.run()) {
+        if (d.compile()) {
             // Imprimir arbol gráfico
             DefaultMutableTreeNode TreeModel = new TreePrinter().Print(d.getAST());
             Tree.setModel(new DefaultTreeModel(TreeModel));
             
             TableIdentifiers.setModel(d.getTable().getTableModel());
+            d.run();
         }
         
     }//GEN-LAST:event_RunMenuItemActionPerformed
 
     @Override
     public void ReportError(String message) {
-        TerminalPane.setText(TerminalPane.getText() + "\n" + message);
+        TerminalPane.setText(TerminalPane.getText() + message + "\n");
     }
 
     @Override
     public void ReportMessage(String message) {
-        TerminalPane.setText(TerminalPane.getText() + "\n" + message);
+        TerminalPane.setText(TerminalPane.getText() + message + "\n");
     }
     // Two controls, one is the editor and the other is our little status bar at the bottom.
     // When we update the editor, the change in caret will update the status text field.

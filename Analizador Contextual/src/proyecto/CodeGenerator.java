@@ -149,9 +149,10 @@ public final class CodeGenerator implements Visitor {
 
         HashMap<String, String> args = (HashMap<String, String>) arg;
         String className = args.get("class");
-
-        locals++;
-        c.pos = ++NumVar;
+        
+        gen.writeCodeLine(className, "    ldc 0");
+        gen.writeCodeLine(className, "    istore " + locals++);
+        c.pos = NumVar++;
 
         return null;
     }
@@ -171,9 +172,12 @@ public final class CodeGenerator implements Visitor {
         locals = 1;
         stack = 0;
 
+        NumParam = 0;
+        c.fpb1.visit(this, arg);
+        
         // Por el momento no se visita
         // c.fpb1.visit(this, arg);
-        NumVar = 0;
+        NumVar = NumParam;
         if (c.vd2 != null) {
             c.vd2.visit(this, arg);
         }
@@ -210,6 +214,7 @@ public final class CodeGenerator implements Visitor {
 
     @Override
     public Object visitAFormalParameter(AFormalParameter c, Object arg) {
+        NumParam++;
         return null;
     }
 
@@ -317,7 +322,6 @@ public final class CodeGenerator implements Visitor {
         String id = c.id1.value.toString();
         String dtype = TypeUtilities.getDeclaration(table.retrieveAll(id));
         if (dtype.equals("var")) {
-
             AVarDeclaration declaration = (AVarDeclaration) table.retrieveAll(id);
             gen.writeCodeLine(className, "    istore " + declaration.pos);
         }
@@ -788,6 +792,7 @@ public final class CodeGenerator implements Visitor {
 
     @Override
     public Object visitASwitchStatement(ASwitchStatement c, Object arg) {
+        
         if (c.e0 != null) {
             c.e0.visit(this, arg);
         }

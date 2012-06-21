@@ -35,47 +35,48 @@ public class Driver implements Reporter {
     }
 
     public Boolean run() {
-        if (compile()) {
-            if (totalErrors == 0) {
-                CodeGenerator generator = new CodeGenerator(root, table, repoter);
-                try {
-                    // Crear un nuevo proceso para ejecutar jasmin y generar cada ensamblado .class
-                    for (int i = 0; i < generator.getGeneratedClasses().size(); i++) {
-                        Process jasmingen = Runtime.getRuntime().exec(new String[]{"java", "-jar", "jasmin.jar", generator.getGeneratedClasses().get(i) + ".j"});
-                        try {
-                            jasmingen.waitFor();
-                        } catch (InterruptedException inter) {
-                            continue;
-                        }
-                    }
-                    // Crear un proceso para ejecutar el código generado
-                    Process jasmin = Runtime.getRuntime().exec(new String[]{"java", generator.getMainClass()});
-
-                    InputStream inputStream = jasmin.getInputStream();
-                    InputStream errorStream = jasmin.getErrorStream();
-
+        if (totalErrors == 0) {
+            CodeGenerator generator = new CodeGenerator(root, table, repoter);
+            try {
+                // Crear un nuevo proceso para ejecutar jasmin y generar cada ensamblado .class
+                for (int i = 0; i < generator.getGeneratedClasses().size(); i++) {
+                    Process jasmingen = Runtime.getRuntime().exec(new String[]{"java", "-jar", "jasmin.jar", generator.getGeneratedClasses().get(i) + ".j"});
                     try {
-                        String inputString = new java.util.Scanner(inputStream).useDelimiter("\\A").next();
-                        repoter.ReportMessage("Program output:");
-                        repoter.ReportMessage(inputString);
-                    } catch (Exception ex) {
+                        jasmingen.waitFor();
+                    } catch (InterruptedException inter) {
+                        continue;
                     }
-                    try {
-                        String errorString = new java.util.Scanner(errorStream).useDelimiter("\\A").next();
-                        repoter.ReportError("Program error output:");
-                        repoter.ReportError(errorString);
-                    } catch (Exception ex) {
-                    }
-
-                } catch (IOException ex) {
-                    repoter.ReportError("Cannot write to file: " + ex.getMessage());
                 }
-            } else {
-                repoter.ReportError("Cannot run program with " + totalErrors + " errors.");
+                // Crear un proceso para ejecutar el código generado
+                Process jasmin = Runtime.getRuntime().exec(new String[]{"java", generator.getMainClass()});
+
+                InputStream inputStream = jasmin.getInputStream();
+                InputStream errorStream = jasmin.getErrorStream();
+
+                try {
+                    String inputString = new java.util.Scanner(inputStream).useDelimiter("\\A").next();
+                    repoter.ReportMessage("Program output:");
+                    repoter.ReportMessage(inputString);
+                } catch (Exception ex) {
+                }
+                try {
+                    String errorString = new java.util.Scanner(errorStream).useDelimiter("\\A").next();
+                    repoter.ReportError("Program error output:");
+                    repoter.ReportError(errorString);
+                } catch (Exception ex) {
+                    return false;
+                }
+            } catch (IOException ex) {
+                repoter.ReportError("Cannot write to file: " + ex.getMessage());
+                return false;
             }
-        } return false;
+        } else {
+            repoter.ReportError("Cannot run program with " + totalErrors + " errors.");
+            return false;
+        }
+        return true;
     }
-    
+
     public Boolean compile() {
         try {
             // Análisis sintáctico
@@ -83,10 +84,14 @@ public class Driver implements Reporter {
 
             // Análisis contextual
             table = new IdentifierTable();
-            ContextAnalizer analizer = new ContextAnalizer(table, repoter);
+            ContextAnalizer analizer = new ContextAnalizer(table, this);
             analizer.visit(root);
-            repoter.ReportMessage("Successfully compiled.");
-            return true;
+            if (totalErrors == 0) {
+                repoter.ReportMessage("Successfully compiled.");
+                return true;
+            } else {
+                return false;
+            }
         } catch (Exception ex) {
             repoter.ReportMessage("Failed to compile.");
             return false;
