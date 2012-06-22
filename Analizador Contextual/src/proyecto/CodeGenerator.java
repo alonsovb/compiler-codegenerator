@@ -633,7 +633,6 @@ public final class CodeGenerator implements Visitor {
 
     @Override
     public Object visitAPrimaryInteger(APrimaryInteger c, Object arg) {
-        //"iload " 
         HashMap<String, String> args = (HashMap<String, String>) arg;
         String className = args.get("class");
         stack++;
@@ -664,7 +663,6 @@ public final class CodeGenerator implements Visitor {
 
     @Override
     public Object visitAPrimaryIdentifier(APrimaryIdentifier c, Object arg) {
-
         HashMap<String, String> args = (HashMap<String, String>) arg;
         String className = args.get("class");
 
@@ -792,7 +790,6 @@ public final class CodeGenerator implements Visitor {
 
     @Override
     public Object visitASwitchStatement(ASwitchStatement c, Object arg) {
-        
         if (c.e0 != null) {
             c.e0.visit(this, arg);
         }

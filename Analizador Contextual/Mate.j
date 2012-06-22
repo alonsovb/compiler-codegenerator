@@ -12,6 +12,10 @@
 .method public static Sumatoria(I)I
 .limit stack 6
 .limit locals 3
+    ldc 0
+    istore 1
+    ldc 0
+    istore 2
     iload 0
     ldc 2
     if_icmplt true0
