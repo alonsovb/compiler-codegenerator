@@ -9,8 +9,8 @@
    return
 .end method
 
-.method public static CalcularFactorial(I)I
-.limit stack 3
+.method public static CalcularFactorial(II)I
+.limit stack 4
 .limit locals 2
     ldc 0
     istore 1
@@ -28,18 +28,19 @@
     goto else0
   then0:
     ldc 1
-    istore 1
+    istore 2
     goto ifend0
   else0:
     iload 0
     iload 0
     ldc 1
     isub
-    invokestatic Factorial/CalcularFactorial(I)I
+    ldc 2
+    invokestatic Factorial/CalcularFactorial(II)I
     imul
-    istore 1
+    istore 2
   ifend0:
-    iload 1
+    iload 2
     ireturn
 .end method
 

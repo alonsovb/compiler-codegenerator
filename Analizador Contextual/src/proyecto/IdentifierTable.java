@@ -5,7 +5,30 @@
  */
 package proyecto;
 
-import AST.*;
+import ast.AFormalParameterListRest;
+import ast.APrimaryInteger;
+import ast.ExpressionList;
+import ast.ATypeSimple;
+import ast.AFormalParameterList;
+import ast.Visitor;
+import ast.AClassDeclaration;
+import ast.AnArrayType;
+import ast.ATypeArray;
+import ast.FormalParameterList;
+import ast.AClassExtendsDeclaration;
+import ast.AST;
+import ast.AnExpressionPrimary;
+import ast.ASimpleTypeInt;
+import ast.AFormalParameterBlock;
+import ast.Expression;
+import ast.Type;
+import ast.AnExpressionListRest;
+import ast.AMethodDeclaration;
+import ast.AFormalParameter;
+import ast.ASimpleTypeChar;
+import ast.APrimaryChar;
+import ast.AnExpressionList;
+import ast.AMethodDecl;
 import java_cup.runtime.Symbol;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;

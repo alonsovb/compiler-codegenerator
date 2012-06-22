@@ -4,7 +4,21 @@
  */
 package proyecto;
 
-import AST.*;
+import ast.ATypeSimple;
+import ast.AClassDeclaration;
+import ast.AnArrayType;
+import ast.AVarDeclaration;
+import ast.ATypeArray;
+import ast.AClassExtendsDeclaration;
+import ast.AST;
+import ast.ASimpleTypeInt;
+import ast.Type;
+import ast.AMainClass;
+import ast.AMethodDeclaration;
+import ast.AFormalParameter;
+import ast.ASimpleTypeChar;
+import ast.ATypeIdentifier;
+import ast.ASimpleTypeBool;
 
 /**
  *

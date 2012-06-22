@@ -5,6 +5,7 @@
 package proyecto;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
@@ -82,6 +83,17 @@ public class ClassFileGenerator {
             Files.put(ClassName, builder);
         } else {
             reporter.ReportError("Cannot find string for " + ClassName + " when replacing " + ToReplace + " to " + NewValue);
+        }
+    }
+    
+    public static String readFile(String FileName) {
+        File f;
+        f = new File(FileName);
+        try {
+            String reader = new java.util.Scanner(f).useDelimiter("\\A").next();
+            return reader;
+        } catch (Exception ex) {
+            return "Unable to read " + FileName;
         }
     }
 }

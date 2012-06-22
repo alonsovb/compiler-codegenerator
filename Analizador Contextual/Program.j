@@ -10,10 +10,11 @@
 .end method
 
 .method public static main([Ljava/lang/String;)V
-.limit stack 2
+.limit stack 3
 .limit locals 2
     ldc 10
-    invokestatic Mate/Sumatoria(I)I
+    ldc 3
+    invokestatic Factorial/CalcularFactorial(II)I
     istore 1
     getstatic java/lang/System/out Ljava/io/PrintStream;
     iload 1

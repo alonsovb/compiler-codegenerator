@@ -4,7 +4,7 @@
  */
 package proyecto;
 
-import editor.EditorFrame;
+import visual.EditorFrame;
 import javax.swing.UIManager;
 
 /**
@@ -39,7 +39,7 @@ public class Main {
             java.util.logging.Logger.getLogger(EditorFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-        editor.EditorFrame editor = new EditorFrame();
+        visual.EditorFrame editor = new EditorFrame();
         editor.setVisible(true);
     }
 }

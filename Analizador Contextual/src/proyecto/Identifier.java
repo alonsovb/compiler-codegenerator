@@ -4,7 +4,7 @@
  */
 package proyecto;
 
-import AST.AST;
+import ast.AST;
 
 /**
  *

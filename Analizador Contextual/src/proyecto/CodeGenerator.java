@@ -4,7 +4,7 @@
  */
 package proyecto;
 
-import AST.*;
+import ast.*;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,11 +18,16 @@ public final class CodeGenerator implements Visitor {
     AST code;
     Reporter reporter;
     ClassFileGenerator gen;
-    int stack = 0, locals = 1;
     IdentifierTable table;
-    private int NumEt = 0;
-    private int NumVar = 0;
-    private int NumParam = 0;
+    
+    private int stack = 0;
+    private int maxStack = 0;
+    private int locals = 1;
+    private int numEt = 0;
+    private int numVar = 0;
+    private int numParam = 0;
+    private int numExpr = 0;
+    
     private List<String> GeneratedClasses = new LinkedList<String>();
     private String MainClass;
 
@@ -152,7 +157,7 @@ public final class CodeGenerator implements Visitor {
         
         gen.writeCodeLine(className, "    ldc 0");
         gen.writeCodeLine(className, "    istore " + locals++);
-        c.pos = NumVar++;
+        c.pos = numVar++;
 
         return null;
     }
@@ -164,20 +169,21 @@ public final class CodeGenerator implements Visitor {
         String className = args.get("class");
 
         String methodName = c.id1.value.toString();
-        // Por defecto recibe un entero y devuelve entero
-        gen.writeCodeLine(className, ".method public static " + methodName + "(I)I");
-        gen.writeCodeLine(className, ".limit stack {0}");
-        gen.writeCodeLine(className, ".limit locals {1}");
-
-        locals = 1;
-        stack = 0;
-
-        NumParam = 0;
+        
+        numParam = 0;
         c.fpb1.visit(this, arg);
         
-        // Por el momento no se visita
-        // c.fpb1.visit(this, arg);
-        NumVar = NumParam;
+        StringBuilder tempParams = new StringBuilder("");
+        for (int i = 0; i < numParam; i++) tempParams.append("I");
+        
+        // Por defecto recibe un entero y devuelve entero
+        gen.writeCodeLine(className, ".method public static " + methodName + "(" + tempParams + ")I");
+        gen.writeCodeLine(className, ".limit stack {0}");
+        gen.writeCodeLine(className, ".limit locals {1}");
+        
+        locals = 1;
+        stack = 0;
+        numVar = numParam;
         if (c.vd2 != null) {
             c.vd2.visit(this, arg);
         }
@@ -214,7 +220,7 @@ public final class CodeGenerator implements Visitor {
 
     @Override
     public Object visitAFormalParameter(AFormalParameter c, Object arg) {
-        NumParam++;
+        numParam++;
         return null;
     }
 
@@ -342,7 +348,7 @@ public final class CodeGenerator implements Visitor {
         HashMap<String, String> args = (HashMap<String, String>) arg;
         String className = args.get("class");
 
-        int et = NumEt;
+        int et = numEt;
         if (1 < 2) {
         } else {
         }
@@ -358,7 +364,7 @@ public final class CodeGenerator implements Visitor {
         c.s2.visit(this, arg);
         gen.writeCodeLine(className, "  ifend" + et + ":");
 
-        NumEt++;
+        numEt++;
 
         return null;
     }
@@ -369,7 +375,7 @@ public final class CodeGenerator implements Visitor {
         HashMap<String, String> args = (HashMap<String, String>) arg;
         String className = args.get("class");
 
-        int et = NumEt;
+        int et = numEt;
 
         // Revisar condición
         gen.writeCodeLine(className, "  check" + et + ":");
@@ -383,7 +389,7 @@ public final class CodeGenerator implements Visitor {
         gen.writeCodeLine(className, "    goto check" + et);
         gen.writeCodeLine(className, "  endwhile" + et + ":");
 
-        NumEt++;
+        numEt++;
 
         return null;
     }
@@ -467,7 +473,7 @@ public final class CodeGenerator implements Visitor {
         HashMap<String, String> args = (HashMap<String, String>) arg;
         String className = args.get("class");
 
-        int et = NumEt;
+        int et = numEt;
 
         // Obtener ambos parámetros
         c.pe0.visit(this, arg);
@@ -482,7 +488,7 @@ public final class CodeGenerator implements Visitor {
         gen.writeCodeLine(className, "  false" + et + ":");
         gen.writeCodeLine(className, "    ldc 0");
         gen.writeCodeLine(className, "  exit" + et + ":");
-        NumEt++;
+        numEt++;
 
         return null;
     }
@@ -493,7 +499,7 @@ public final class CodeGenerator implements Visitor {
         HashMap<String, String> args = (HashMap<String, String>) arg;
         String className = args.get("class");
 
-        int et = NumEt;
+        int et = numEt;
 
         // Obtener ambos parámetros
         c.pe0.visit(this, arg);
@@ -508,7 +514,7 @@ public final class CodeGenerator implements Visitor {
         gen.writeCodeLine(className, "  false" + et + ":");
         gen.writeCodeLine(className, "    ldc 0");
         gen.writeCodeLine(className, "  exit" + et + ":");
-        NumEt++;
+        numEt++;
 
         return null;
     }
@@ -586,25 +592,28 @@ public final class CodeGenerator implements Visitor {
         String className = args.get("class");
 
         // Visitar las expresiones enviadas y dejarlas en la pila
+        numExpr = 0;
         if (c.elb1 != null) {
             c.elb1.visit(this, arg);
         }
-
+        
         if (c.pe0 != null) {
-
             String MethodName = c.id1.value.toString();
+            
+            StringBuilder exprs = new StringBuilder("");
+            for (int i = 0; i < numExpr; i++) exprs.append("I");
 
             if (c.pe0.getClass() == APrimaryAllocationExpression.class) {
                 APrimaryAllocationExpression PId = (APrimaryAllocationExpression) c.pe0;
                 String PClass = PId.ae0.id1.value.toString();
 
                 // Escribir el nombre del método que se visitará
-                gen.writeCodeLine(className, "    invokestatic " + PClass + "/" + MethodName + "(I)I");
+                gen.writeCodeLine(className, "    invokestatic " + PClass + "/" + MethodName + "(" + exprs + ")I");
             } else if (c.pe0.getClass() == APrimaryThis.class) {
                 String PClass = c.pe0.visit(this, arg).toString();
 
                 // Escribir el nombre del método que se visitará
-                gen.writeCodeLine(className, "    invokestatic " + PClass + "/" + MethodName + "(I)I");
+                gen.writeCodeLine(className, "    invokestatic " + PClass + "/" + MethodName + "(" + exprs + ")I");
             }
             // c.pe0.visit(this, arg);
         }
@@ -614,6 +623,7 @@ public final class CodeGenerator implements Visitor {
 
     @Override
     public Object visitAnExpressionList(AnExpressionList c, Object arg) {
+        numExpr++;
         c.e0.visit(this, arg);
         return null;
     }
