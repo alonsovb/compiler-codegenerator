@@ -9,11 +9,11 @@
    return
 .end method
 
-.method public static CalcularFactorial(II)I
-.limit stack 4
-.limit locals 2
+.method public static CalcularFactorial(I)I
+.limit stack 3
+.limit locals 3
     ldc 0
-    istore 1
+    istore 2
     iload 0
     ldc 1
     if_icmplt true0
@@ -35,8 +35,7 @@
     iload 0
     ldc 1
     isub
-    ldc 2
-    invokestatic Factorial/CalcularFactorial(II)I
+    invokestatic Factorial/CalcularFactorial(I)I
     imul
     istore 2
   ifend0:

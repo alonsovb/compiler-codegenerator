@@ -22,7 +22,6 @@ public final class CodeGenerator implements Visitor {
     
     private int stack = 0;
     private int maxStack = 0;
-    private int locals = 1;
     private int numEt = 0;
     private int numVar = 0;
     private int numParam = 0;
@@ -74,7 +73,8 @@ public final class CodeGenerator implements Visitor {
         gen.writeCodeLine(className, ".limit stack {0}");
         gen.writeCodeLine(className, ".limit locals {1}");
 
-        locals = 1;
+        numVar = 1;
+        numParam = 1;
         stack = 0;
 
         if (c.ps0 != null) {
@@ -84,7 +84,7 @@ public final class CodeGenerator implements Visitor {
         }
 
         gen.replaceValues(className, "{0}", String.valueOf(stack));
-        gen.replaceValues(className, "{1}", String.valueOf(locals));
+        gen.replaceValues(className, "{1}", String.valueOf(numVar + numParam));
 
         gen.writeCodeLine(className, "    return");
         gen.writeCodeLine(className, ".end method");
@@ -155,9 +155,12 @@ public final class CodeGenerator implements Visitor {
         HashMap<String, String> args = (HashMap<String, String>) arg;
         String className = args.get("class");
         
+        c.pos = numParam + numVar;
+        numVar++;
+        
+        // Inicializar cada variable en cero
         gen.writeCodeLine(className, "    ldc 0");
-        gen.writeCodeLine(className, "    istore " + locals++);
-        c.pos = numVar++;
+        gen.writeCodeLine(className, "    istore " + c.pos);
 
         return null;
     }
@@ -174,16 +177,16 @@ public final class CodeGenerator implements Visitor {
         c.fpb1.visit(this, arg);
         
         StringBuilder tempParams = new StringBuilder("");
-        for (int i = 0; i < numParam; i++) tempParams.append("I");
-        
+        for (int i = 0; i < numParam; i++) tempParams.append("I"); 
+       
         // Por defecto recibe un entero y devuelve entero
         gen.writeCodeLine(className, ".method public static " + methodName + "(" + tempParams + ")I");
         gen.writeCodeLine(className, ".limit stack {0}");
         gen.writeCodeLine(className, ".limit locals {1}");
         
-        locals = 1;
         stack = 0;
-        numVar = numParam;
+        numVar = 1;
+        
         if (c.vd2 != null) {
             c.vd2.visit(this, arg);
         }
@@ -196,7 +199,7 @@ public final class CodeGenerator implements Visitor {
         c.e4.visit(this, arg);
 
         gen.replaceValues(className, "{0}", String.valueOf(stack));
-        gen.replaceValues(className, "{1}", String.valueOf(locals));
+        gen.replaceValues(className, "{1}", String.valueOf(numVar + numParam));
 
         gen.writeCodeLine(className, "    ireturn");
         gen.writeCodeLine(className, ".end method");
@@ -401,7 +404,6 @@ public final class CodeGenerator implements Visitor {
         String className = args.get("class");
 
         c.e0.visit(this, arg);
-        locals++;
         gen.writeCodeLine(className, "    istore 1");
         stack++;
         gen.writeCodeLine(className, "    getstatic java/lang/System/out Ljava/io/PrintStream;");
@@ -617,7 +619,6 @@ public final class CodeGenerator implements Visitor {
             }
             // c.pe0.visit(this, arg);
         }
-
         return null;
     }
 
@@ -663,11 +664,21 @@ public final class CodeGenerator implements Visitor {
 
     @Override
     public Object visitAPrimaryTrue(APrimaryTrue c, Object arg) {
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+        stack++;
+        gen.writeCodeLine(className, "    ldc 1");
+
         return null;
     }
 
     @Override
     public Object visitAPrimaryFalse(APrimaryFalse c, Object arg) {
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
+        stack++;
+        gen.writeCodeLine(className, "    ldc 0");
+
         return null;
     }
 
@@ -704,7 +715,19 @@ public final class CodeGenerator implements Visitor {
 
     @Override
     public Object visitAPrimaryNotExpression(APrimaryNotExpression c, Object arg) {
+        HashMap<String, String> args = (HashMap<String, String>) arg;
+        String className = args.get("class");
         c.ne0.visit(this, arg);
+        stack++;
+        // Tomar el valor anterior y cambiar a cero o 1
+        gen.writeCodeLine(className, "    ifeq makeTrue" + numEt);
+        gen.writeCodeLine(className, "    goto makeFalse" + numEt);
+        gen.writeCodeLine(className, "  makeFalse" + numEt + ":");
+        gen.writeCodeLine(className, "    ldc 0");
+        gen.writeCodeLine(className, "    goto endNot" + numEt);
+        gen.writeCodeLine(className, "  makeTrue" + numEt + ":");
+        gen.writeCodeLine(className, "    ldc 1");
+        gen.writeCodeLine(className, "  endNot" + numEt + ":");
         return null;
     }
 
