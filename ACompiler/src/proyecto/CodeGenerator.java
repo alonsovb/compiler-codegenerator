@@ -75,7 +75,7 @@ public final class CodeGenerator implements Visitor {
 
         numVar = 1;
         numParam = 1;
-        stack = 0;
+        stack = 1;
 
         if (c.ps0 != null) {
             HashMap<String, String> args = new HashMap<String, String>();
@@ -174,7 +174,8 @@ public final class CodeGenerator implements Visitor {
         String methodName = c.id1.value.toString();
         
         numParam = 0;
-        c.fpb1.visit(this, arg);
+        if (c.fpb1 != null)
+            c.fpb1.visit(this, arg);
         
         StringBuilder tempParams = new StringBuilder("");
         for (int i = 0; i < numParam; i++) tempParams.append("I"); 

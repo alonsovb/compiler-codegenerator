@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.AbstractList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
@@ -23,6 +22,7 @@ import javax.swing.event.CaretListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import proyecto.ClassFileGenerator;
 import proyecto.Driver;
 import proyecto.Reporter;
 import proyecto.TreePrinter;
@@ -105,7 +105,12 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
             }
         });
 
-        add(jSplitPane1, BorderLayout.CENTER);
+        if (new File("Template.java").exists()) {
+            add(jSplitPane1, BorderLayout.CENTER);
+        }
+
+        EditorPane.setText(ClassFileGenerator.readFile("Template.java"));
+
     }
 
     /**
@@ -355,13 +360,13 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
         for (int i = 0; i < subFrames.size(); i++) {
             subFrames.get(i).dispose();
         }
-        
+
         // Obtener código del editor
         String source = EditorPane.getText();
         this.TerminalPane.setText("");
 
         Driver d = new Driver(this, source);
-        
+
         // Compilar
         if (d.compile()) {
             // Imprimir arbol gráfico
@@ -370,7 +375,7 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
             // Mostrar tabla de identificadores
             TableIdentifiers.setModel(d.getTable().getTableModel());
         }
-        
+
     }//GEN-LAST:event_CompileMenuItemActionPerformed
 
     private void ExpandAllTreeMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExpandAllTreeMenuActionPerformed
@@ -390,12 +395,12 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
     }//GEN-LAST:event_CollapseAllMenuItemActionPerformed
 
     private void RunMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RunMenuItemActionPerformed
-        
+
         // Cerrar ventanas de código generadas
         for (int i = 0; i < subFrames.size(); i++) {
             subFrames.get(i).dispose();
         }
-        
+
         // Obtener código del editor
         String source = EditorPane.getText();
         this.TerminalPane.setText("");
@@ -405,11 +410,11 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
             // Imprimir arbol gráfico
             DefaultMutableTreeNode TreeModel = new TreePrinter().Print(d.getAST());
             Tree.setModel(new DefaultTreeModel(TreeModel));
-            
+
             TableIdentifiers.setModel(d.getTable().getTableModel());
             d.run();
         }
-        
+
     }//GEN-LAST:event_RunMenuItemActionPerformed
 
     @Override
@@ -429,7 +434,7 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
     private void updateStatus(int linenumber, int columnnumber) {
         status.setText("Line: " + linenumber + " Column: " + columnnumber);
     }
-    
+
     @Override
     public void ShowGeneratedFiles(List<String> Files) {
         subFrames = new LinkedList<CodeViewer>();
@@ -440,8 +445,6 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
             viewer.setVisible(true);
         }
     }
-
-    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem CollapseAllMenuItem;
     private javax.swing.JMenuItem CompileMenuItem;
@@ -468,6 +471,4 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JToolBar jToolBar1;
     // End of variables declaration//GEN-END:variables
-
-    
 }

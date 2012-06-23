@@ -10,10 +10,9 @@
 .end method
 
 .method public static main([Ljava/lang/String;)V
-.limit stack 2
+.limit stack 3
 .limit locals 2
-    ldc 10
-    invokestatic Factorial/CalcularFactorial(I)I
+    ldc 100
     istore 1
     getstatic java/lang/System/out Ljava/io/PrintStream;
     iload 1
