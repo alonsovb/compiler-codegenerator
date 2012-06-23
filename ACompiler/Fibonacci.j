@@ -11,24 +11,38 @@
 
 .method public static CalcularFibonacci(I)I
 .limit stack 3
-.limit locals 5
+.limit locals 3
     ldc 0
     istore 2
-    ldc 0
-    istore 3
-    ldc 0
-    istore 4
-    ldc 2
     iload 0
-    istore 3
-    iload 3
-    iadd
-    ldc 9
     ldc 2
-    idiv
-    imul
-    istore 4
-    iload 4
+    if_icmplt true0
+    goto false0
+  true0:
+    ldc 1
+    goto exit0
+  false0:
+    ldc 0
+  exit0:
+    ifne then0
+    goto else0
+  then0:
+    iload 0
+    istore 2
+    goto ifend0
+  else0:
+    iload 0
+    ldc 1
+    isub
+    invokestatic Fibonacci/CalcularFibonacci(I)I
+    iload 0
+    ldc 2
+    isub
+    invokestatic Fibonacci/CalcularFibonacci(I)I
+    iadd
+    istore 2
+  ifend0:
+    iload 2
     ireturn
 .end method
 

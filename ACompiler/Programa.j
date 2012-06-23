@@ -1,4 +1,4 @@
-.class public Program
+.class public Programa
 .super java/lang/Object
 
 ;
@@ -10,10 +10,9 @@
 .end method
 
 .method public static main([Ljava/lang/String;)V
-.limit stack 3
+.limit stack 2
 .limit locals 2
-    ldc 10
-    invokestatic Fibonacci/CalcularFibonacci(I)I
+    invokestatic MiClase/MiMetodo()I
     istore 1
     getstatic java/lang/System/out Ljava/io/PrintStream;
     iload 1

@@ -46,7 +46,6 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
         setLayout(new BorderLayout());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-
         // Add a caretListener to the editor. This is an anonymous class because it is inline and has no specific name.
         EditorPane.addCaretListener(new CaretListener() {
             // Each time the caret is moved, it will trigger the listener and its method caretUpdate.
@@ -105,12 +104,10 @@ public class EditorFrame extends javax.swing.JFrame implements Reporter {
             }
         });
 
+        add(jSplitPane1, BorderLayout.CENTER);
         if (new File("Template.java").exists()) {
-            add(jSplitPane1, BorderLayout.CENTER);
+            EditorPane.setText(ClassFileGenerator.readFile("Template.java"));
         }
-
-        EditorPane.setText(ClassFileGenerator.readFile("Template.java"));
-
     }
 
     /**
